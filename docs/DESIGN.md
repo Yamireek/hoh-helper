@@ -312,3 +312,39 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 3. Selecting a relic, unequipping it, and cancelling behave correctly. Changing a relic updates the original → draft difference and `Changed only` roster; reverting to baseline removes the flag. Saved plans preserve the chosen relic.
 4. All modal entry/exit pathways maintain keyboard focus and do not trigger background interactions; the dialog and application do not cause document overflow at 1440×900 or 1920×1080.
 5. The existing equipment picker and equipment-transfer semantics remain unchanged. Verify `npm run check`, `npm run test`, `npm run build` after implementation.
+
+## 19. Relic Vault — persistent right-hand detail inspector (2026-11-11)
+
+**Design-first change.** The Relics navigation view must use the **same master/detail split layout as the Equipment inventory**, not a full-width table. The inventory remains on the left; a fixed-width independently scrollable detail inspector sits on the right. This is an inventory inspection feature, separate from the Heroes screen's relic picker in §18. Retain the desktop app's 100vw × 100vh shell and thin dark scrollbars.
+
+### 19.1 Table and selection
+
+- Relic inventory rows are selectable. Clicking a row highlights it and updates the right-side detail panel without navigating away. The chosen relic persists while navigating within the app; sorting or searching does not arbitrarily reset it.
+- Use a compact table with name/icon, rarity/stars, relic role/type, level (current/max when known), preview of effect, mock copies and the heroes using the type. Search and column sorting work with the same shared table primitives as Equipment.
+- Select **Guardian Lion** by default in the prototype so the supplied game reference can be inspected immediately. For a selected relic excluded by search, automatically show the first filtered relic; when there are no results, show a clear empty detail state rather than unrelated details. An empty result should not change the last explicit selection.
+- A table row is focusable and can be selected with Enter or Space. Make active selection visually clear and announce its state to assistive technology.
+
+### 19.2 Detail inspector card
+
+- Inspector heading: **RELIC DETAILS** with an explicit **Mock data** label. Use the same right panel width, fixed height, typography hierarchy and independent scrolling as the Equipment detail panel, with an illustrative relic identity header.
+- At the top, display a visually prominent *relic identity panel*: icon/art placeholder; full name, rarity, five-star presentation when provided, current level / cap, type and optional transcendence status. Do not pretend the game's artwork has been imported.
+- Below the header, show **individual base stats** as separate rows (ATK, DEF and any additional known attributes), preserving their labels and units. If a fixture has no verified numeric stats, render **Stats not captured** rather than inventing them.
+- Show the relic's **skill/ability name** (for example **CLEANSE**), full effect description in a distinct readable panel, and cooldown where present. Highlight useful ability keywords while retaining accessible plain text. For relics without a named ability, label the existing effect **Effect**, without inventing an ability.
+- Display owned copies as **Mock copies**, current draft users (multiple heroes may share a relic-type ID), and whether a level cap or transcendence state is known. Show a neutral **Max level** status for a relic already at its documented cap; do not provide a fake executable transcendence upgrade.
+- A working **Open hero** action is available for one or more assigned heroes; clicking a specific hero switches to that hero's inspector. When multiple users exist, list them in a dedicated users section, with one action per hero. Preserve the existing hypothetical hero-change indicators and relic-picker behavior.
+- Include an explicit note that relic-level upgrading, transcendence and resource pricing are not yet connected and no game state is changed by inspection.
+
+### 19.3 Reference values and data ownership
+
+- The user's Guardian Lion screenshot is an authoritative reference **for that shown example only**: **Guardian Lion**, 5 stars, level **10/10**, **ATK 46**, **DEF 138**, skill **CLEANSE**, granting immunity to being stunned with **9.60 s cooldown**. Its image/art can be represented by a clear icon placeholder. Add this as an illustrative fixture while marking the entire inventory dataset as mock. Do not generalize these attributes to other relics.
+- Optional future data fields: `stars`, `maxLevel`, `stats[]` (`label`, `value`, optional `unit`), `abilityName`, `abilityDescription`, `cooldownSeconds`, `transcendenceStatus`. Preserve prior `id`, `name`, `type`, `rarity`, `level`, `effect`, `charges`, `icon` so §18 picker and saved hero plans remain compatible.
+- All current relic IDs are **relic types**, not unique instances: `charges` is not a verified inventory count and cannot be used to enforce ownership or transfers. Display all current heroes using the selected type without silently unequipping anyone.
+
+### 19.4 Viewport and acceptance tests
+
+1. Relics screen displays **left inventory table + right detail inspector**, with `data-relic` row selection, active-row highlighting and matching inspector after click, search, sort and navigation.
+2. Guardian Lion shows exactly level 10/10, five stars, ATK 46, DEF 138, CLEANSE, stunned immunity and a 9.60 s cooldown, with mock-art caveat.
+3. Existing relic types with no captured base stats show a truthful missing-data state, not invented ATK/DEF. Effect strings and names are not truncated in the inspector.
+4. The assigned heroes section lists all draft users and **Open hero** navigates to the correct hero without changing that hero's relic or draft.
+5. No outer-document overflow at 1440×900 or 1920×1080. Tables, side panels and narrow screens scroll internally; at compact widths the inspector stacks below the table as already specified for Equipment.
+6. Equipment view, Heroes relic picker, planner costs and saved plans continue to pass `npm run check`, `npm run test`, `npm run build`.
