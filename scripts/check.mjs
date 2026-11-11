@@ -15,4 +15,7 @@ assert(code.includes('filteredRelicItems')&&code.includes('chooseRelicPickerItem
 assert(!code.includes('<select id="hero-relic"'),'Native relic selector is forbidden');
 assert(doc.includes('## 19. Relic Vault — persistent right-hand detail inspector'),'Relic side inspector design required');
 assert(code.includes('relicDetailInspector')&&code.includes('data-relic='),'Relic inspector required');
+assert(doc.includes('## 20. Hero roster opens a full-size detail dialog'),'Hero dialog design contract required');
+assert(code.includes('heroDialogMarkup')&&code.includes('data-open-hero=')&&code.includes('heroDialogOpen'),'Hero detail dialog required');
+assert(css.includes('.hero-detail-dialog')&&css.includes('.hero-roster-full'),'Full-width roster / dialog styles required');
 console.log('Source and design checks: OK');

@@ -5,7 +5,7 @@ const STORAGE='hoh-desktop-prototype-v2';
 const baseChanges={};
 const load=()=>{try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return {}}};
 let persisted=load();
-const state={view:'overview',search:'',heroChangedOnly:false,sortKey:'',sortDir:1,selectedHero:'leonardo',selectedBattle:'b1',selectedOpponent:'opp1',battleFilter:'Needs improvement',arenaMode:'All',changes:persisted.changes||{},assignments:persisted.assignments||{},itemLevels:persisted.itemLevels||{},plans:persisted.plans||[],selectedItem:'scientist-pen',selectedRelic:'guardian-lion',activeSlot:'weapon',activeTab:'Details',toast:'',sidebarCollapsed:false};
+const state={view:'overview',search:'',heroChangedOnly:false,heroDialogOpen:false,sortKey:'',sortDir:1,selectedHero:'leonardo',selectedBattle:'b1',selectedOpponent:'opp1',battleFilter:'Needs improvement',arenaMode:'All',changes:persisted.changes||{},assignments:persisted.assignments||{},itemLevels:persisted.itemLevels||{},plans:persisted.plans||[],selectedItem:'scientist-pen',selectedRelic:'guardian-lion',activeSlot:'weapon',activeTab:'Details',toast:'',sidebarCollapsed:false};
 const icons={overview:'▦',heroes:'♜',equipment:'⚒',relics:'◇',resources:'◉',battles:'⚑',arena:'♟',planner:'◷'};
 const menus=[['overview','Overview'],['heroes','Heroes'],['equipment','Equipment'],['relics','Relics'],['resources','Resources'],['battles','Battle records'],['arena','Arena optimizer'],['planner','Upgrade planner']];
 const h=id=>heroes.find(x=>x.id===id);
@@ -145,7 +145,7 @@ const saveDraft=()=>{localStorage.setItem(STORAGE,JSON.stringify({changes:state.
 let timer;
 const toast=msg=>{state.toast=msg;renderToast();clearTimeout(timer);timer=setTimeout(()=>{state.toast='';renderToast()},2900)};
 function renderToast(){document.querySelector('#toast')?.replaceChildren();if(state.toast){const el=document.createElement('div');el.className='toast-message';el.textContent=state.toast;document.querySelector('#toast')?.append(el)}}
-function goto(view){state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
+function goto(view){state.heroDialogOpen=false;state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
 const statusDot=t=>t==='Defeat'?'danger':t==='Victory'?'success':'warning';
 const titleFor=()=>({overview:['Command center','Your battle performance and the next lowest-cost improvements'],heroes:['Hero roster','Inspect stats, experiment with upgrades, and save a draft build'],equipment:['Equipment inventory','Compare items, bonuses, and current assignment'],relics:['Relic vault','Inspect individual relic stats, abilities and equipped heroes'],resources:['Resources & farming','Available currency, estimated income, and upgrade shortages'],battles:['Battle records','Prioritize failed and sub-3-star battles by farming time'],arena:['Arena optimizer','Select the best saved formation or generate a candidate'],planner:['Upgrade planner','Review all drafted changes and their combined farming costs']})[state.view];
 function shell(){return `<div class="app-shell">
@@ -154,7 +154,7 @@ function shell(){return `<div class="app-shell">
     <div class="nav-caption second">OPTIMIZATION</div>${menus.slice(6).map(([id,label])=>`<button class="nav-item ${state.view===id?'selected':''}" data-nav="${id}"><span class="nav-icon">${icons[id]}</span><span>${label}</span>${id==='planner'&&Object.keys(state.changes).length?`<span class="nav-count">${Object.keys(state.changes).length}</span>`:''}</button>`).join('')}
     <div class="sidebar-bottom"><div class="mock-box"><span class="muted overline">SIMULATION ENGINE</span><div class="small-row"><span class="offline-indicator"></span><strong>Not connected</strong></div><p>Win rates and costs are illustrative. No game file is loaded.</p></div><button class="sidebar-link" data-action="resetAll">↺ <span>Reset demo</span></button></div></aside>
   <main class="workspace"><div class="view-header"><div><div class="breadcrumb">BATTLE LAB <span> / </span> ${state.view.toUpperCase()}</div><h1>${titleFor()[0]}</h1><p>${titleFor()[1]}</p></div><div class="header-actions">${state.view==='heroes'||state.view==='planner'?`<span class="draft-indicator">● ${draftStatus()}</span>${btn('Save plan','savePlan','primary')}`:state.view==='arena'?btn('Optimize all opponents','optimizeAll','primary'):state.view==='battles'?btn('View upgrade plan','goPlanner','primary'):btn('Upgrade planner','goPlanner','secondary')}</div></div><div id="view-content" class="view-content">${renderView()}</div></main>
-  <footer class="statusbar"><span><i class="status-led"></i> Prototype · local mock data</span><span>${heroes.length} heroes <span class="separator">·</span> ${battles.length} battles <span class="separator">·</span> ${opponents.length} opponents</span><span>100% local <span class="separator">·</span> v0.1.0</span></footer><div id="toast"></div><div id="modal-root"></div></div>`}
+  <footer class="statusbar"><span><i class="status-led"></i> Prototype · local mock data</span><span>${heroes.length} heroes <span class="separator">·</span> ${battles.length} battles <span class="separator">·</span> ${opponents.length} opponents</span><span>100% local <span class="separator">·</span> v0.1.0</span></footer><div id="toast"></div><div id="hero-modal-root"></div><div id="modal-root"></div></div>`}
 function toolbar(placeholder,extra=''){return `<div class="table-toolbar"><label class="search-box"><span>⌕</span><input id="global-search" placeholder="${esc(placeholder)}" value="${esc(state.search)}" /></label>${extra}<span class="toolbar-spacer"></span><span class="record-count" id="record-count"></span></div>`}
 function table(columns,rows,empty='No results'){return `<div class="table-scroller"><table class="data-table"><thead><tr>${columns.map(c=>`<th class="${c.align||''}" ${c.width?`style="width:${c.width}"`:''} data-sort="${c.key||''}">${c.label} ${c.key?'<span class="sort-arrow">↕</span>':''}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${columns.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`}
 function sortedFiltered(items,searchText,selectors){let arr=items.filter(x=>selectors(x).toLowerCase().includes(searchText.toLowerCase()));if(state.sortKey)arr=[...arr].sort((a,b)=>{const av=state.sortKey.split('.').reduce((v,k)=>v?.[k],a)??'',bv=state.sortKey.split('.').reduce((v,k)=>v?.[k],b)??'';return (typeof av==='number'&&typeof bv==='number'?av-bv:String(av).localeCompare(String(bv)))*state.sortDir});return arr}
@@ -167,20 +167,20 @@ const visibleHeroes=()=>sortedFiltered(state.heroChangedOnly?changedHeroes():her
 const heroDiffLine=change=>`<span class="hero-diff-line"><b class="hero-diff-type">${esc(change.kind==='SLOT'?change.label:change.kind==='ITEM'?`ITEM · ${change.label}`:change.label)}</b><span class="hero-diff-before">${esc(change.before)}</span><span class="hero-diff-arrow" aria-label="changes to">→</span><strong class="hero-diff-after">${esc(change.after)}</strong></span>`;
 function heroesView(){
   const list=visibleHeroes(),changedCount=changedHeroes().length;
-  if(list.length&&!list.some(hero=>hero.id===state.selectedHero)){state.selectedHero=list[0].id;state.activeSlot='weapon';}
+  if(!state.heroDialogOpen&&list.length&&!list.some(hero=>hero.id===state.selectedHero)){state.selectedHero=list[0].id;state.activeSlot='weapon';}
   const changedToggle=`<label class="changed-only-control ${state.heroChangedOnly?'is-active':''}" for="hero-changed-only"><input id="hero-changed-only" type="checkbox" ${state.heroChangedOnly?'checked':''}><span class="changed-switch" aria-hidden="true"><i></i></span><span>Changed only</span><b class="changed-total">${changedCount}</b></label>`;
   const rows=list.map(hero=>{
     const x=currentHero(hero.id),count=Object.values(x.equipmentSlots).filter(Boolean).length,diff=heroDiff(hero.id),edited=diff.length>0;
     const preview=diff.slice(0,3).map(heroDiffLine).join('');
     const extra=diff.length>3?`<span class="hero-diff-more" title="${esc(diff.map(x=>`${x.label}: ${x.before} → ${x.after}`).join(' • '))}">+${diff.length-3} more · see details</span>`:'';
-    return `<tr data-hero="${hero.id}" class="clickable hero-roster-row ${edited?'draft-edited':''} ${state.selectedHero===hero.id?'active-row':''}"><td><div class="hero-identity-cell">${heroLabel(hero)}${edited?'<span class="hero-draft-tag">EDITED</span>':''}</div></td><td class="hero-change-cell">${edited?`<div class="hero-diff-stack">${preview}${extra}</div>`:'<span class="muted">—</span>'}</td><td>${badge('★'.repeat(hero.rarity),'rarity')}</td><td>${badge(x.role)}</td><td class="number">${edited&&x.level!==hero.level?`<span class="roster-level-previous">${hero.level} → </span>`:''}${x.level} <span class="muted">/ ${x.max}</span></td><td class="number">${fmt(x.power+(x.level-hero.level)*175)}</td><td class="number">${fmt(x.attack)}</td><td class="number">${fmt(x.health)}</td><td>${badge(`${count}/5`,count===5?'success':'warning')}</td><td class="gear-summary">${esc(gearSummary(hero.id))}</td><td>${esc(rel(x.relic)?.name||'None')}</td></tr>`;
+    return `<tr data-hero="${hero.id}" class="clickable hero-roster-row ${edited?'draft-edited':''} ${state.selectedHero===hero.id?'active-row':''}"><td><div class="hero-identity-cell">${heroLabel(hero)}${edited?'<span class="hero-draft-tag">EDITED</span>':''}</div></td><td class="hero-change-cell">${edited?`<div class="hero-diff-stack">${preview}${extra}</div>`:'<span class="muted">—</span>'}</td><td>${badge('★'.repeat(hero.rarity),'rarity')}</td><td>${badge(x.role)}</td><td class="number">${edited&&x.level!==hero.level?`<span class="roster-level-previous">${hero.level} → </span>`:''}${x.level} <span class="muted">/ ${x.max}</span></td><td class="number">${fmt(x.power+(x.level-hero.level)*175)}</td><td class="number">${fmt(x.attack)}</td><td class="number">${fmt(x.health)}</td><td>${badge(`${count}/5`,count===5?'success':'warning')}</td><td class="gear-summary">${esc(gearSummary(hero.id))}</td><td>${esc(rel(x.relic)?.name||'None')}</td><td class="hero-roster-open"><button type="button" class="btn secondary hero-detail-open" data-open-hero="${hero.id}" aria-label="Open details for ${esc(hero.name)}">Open details <span aria-hidden="true">↗</span></button></td></tr>`;
   });
-  return `<div class="split-view"><section class="panel table-panel hero-roster-panel">${toolbar('Search hero, role, faction...',changedToggle)}${table([
+  return `<section class="panel table-panel hero-roster-panel hero-roster-full">${toolbar('Search hero, role, faction...',changedToggle)}${!list.length?`<div class="roster-empty-tools"><span>No heroes match this filter</span><button type="button" class="btn secondary" data-action="showAllHeroes">Show all heroes</button></div>`:''}${table([
     {label:'Hero',key:'name'},{label:'Draft changes'},{label:'Rarity',key:'rarity'},{label:'Role',key:'role'},
     {label:'Level',key:'level',align:'number'},{label:'Power',key:'power',align:'number'},
     {label:'Attack',key:'attack',align:'number'},{label:'Health',key:'health',align:'number'},
-    {label:'Slots'},{label:'Equipment stats'},{label:'Relic'}
-  ],rows,'No heroes match your search or Changed only filter.')}</section><aside class="inspector">${list.length?heroInspector():`<div class="hero-filter-empty"><strong>No heroes match this filter</strong><p>${state.heroChangedOnly?'No edited heroes match the current search.':'No heroes match your search.'}</p><button type="button" class="btn secondary" data-action="showAllHeroes">Show all heroes</button></div>`}</aside></div>`;
+    {label:'Slots'},{label:'Equipment stats'},{label:'Relic'},{label:'Details'}
+  ],rows,'No heroes match your search or Changed only filter.')}</section>`;
 }
 function heroInspector(){
   const hero=h(state.selectedHero),edited=currentHero(hero.id),cost=costFor(hero,edited),level=Number(edited.level);
@@ -274,8 +274,88 @@ function plannerView(){
   }).join(''):'<div class="empty-note">No farming required until you add a change.</div>'}</div></section></div>
   <aside class="planner-aside"><section class="panel"><div class="panel-heading"><div><span class="section-kicker">NEXT TARGETS · MOCK RECIPES</span><h2>Cheapest battle fixes</h2></div></div><div class="planner-recs">${needed.slice(0,7).map((b,i)=>`<div class="planner-rec"><span class="rec-number">${i+1}</span><div><strong>${esc(b.name)}</strong><small>${esc(recipes[b.plan].description)}</small><button data-apply-recipe="${b.id}" class="text-button">Add recommendation</button></div><span class="rec-days">${b.days.toFixed(1)}d</span></div>`).join('')}</div></section><section class="panel saved-plans"><div class="panel-heading"><div><span class="section-kicker">LOCAL STORAGE</span><h2>Saved plans</h2></div></div>${state.plans.length?state.plans.map((p,i)=>`<div class="saved-row"><span><strong>${esc(p.name)}</strong><small>${esc(p.created)} · ${p.count} changes</small></span><button class="text-button" data-load-plan="${i}">Load</button></div>`).join(''):'<p class="muted saved-empty">Save your draft locally. It does not modify the game.</p>'}${btn('Save current plan','savePlan','primary')}</section></aside></div>`;
 }
+// Hero detail is a large, self-contained dialog; source-of-truth DESIGN.md §20.
+let heroDialogReturnId=null;
+function heroDialogMarkup(){
+  const hero=h(state.selectedHero);
+  if(!hero)return '';
+  const changes=heroDiff(hero.id);
+  return `<div class="modal-backdrop hero-dialog-backdrop" data-hero-backdrop><section class="hero-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="hero-dialog-title" aria-describedby="hero-dialog-subtitle" tabindex="-1">
+      <header class="hero-dialog-heading">
+        <div class="hero-dialog-identity">${portrait(hero,'large')}<div class="hero-dialog-titles"><span class="section-kicker">HERO PROFILE · LOCAL DRAFT</span><h2 id="hero-dialog-title">${esc(hero.name)}</h2><p id="hero-dialog-subtitle">${esc(hero.faction)} · ${esc(hero.role)} · Level ${currentHero(hero.id).level}/${hero.max} · Mock data</p></div></div>
+        <div class="hero-dialog-header-actions">${badge('MOCK DATA','demo')}${changes.length?badge(`${changes.length} changes · EDITED`,'warning'):badge('Unchanged','success')}<button type="button" class="hero-dialog-close" data-action="closeHeroDialog" aria-label="Close hero details">×</button></div>
+      </header>
+      <div class="hero-dialog-scroll" tabindex="0" aria-label="Hero details and equipment"><div class="hero-dialog-editor">${heroInspector()}</div></div>
+      <footer class="hero-dialog-footer"><span>Changes are local only · farming estimates are illustrative</span><div>${btn('Review combined plan','goPlanner')}${btn('Discard hero changes','resetHero')}${btn('Close','closeHeroDialog','primary')}</div></footer>
+  </section></div>`;
+}
+function syncOverlayInert(){
+  const overlay=state.heroDialogOpen||Boolean(equipmentPicker)||Boolean(relicPicker);
+  for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))overlay?el.setAttribute('inert',''):el.removeAttribute('inert');
+  const parent=document.querySelector('#hero-modal-root');
+  if(parent){if(equipmentPicker||relicPicker)parent.setAttribute('inert','');else parent.removeAttribute('inert');}
+}
+function showHeroDialog(scroll=0){
+  const root=document.querySelector('#hero-modal-root');
+  if(!root)return;
+  root.innerHTML=state.heroDialogOpen&&state.view==='heroes'?heroDialogMarkup():'';
+  const editor=root.querySelector('.hero-dialog-editor');
+  if(editor){
+    // Build two independent vertical stacks from the canonical heroInspector sections.
+    // This avoids forced empty rows beneath the shorter left-hand summary cards.
+    const blocks=[...editor.children];
+    if(blocks.length===8){
+      const left=document.createElement('div'),right=document.createElement('div');
+      left.className='hero-dialog-column hero-dialog-summary';
+      right.className='hero-dialog-column hero-dialog-loadout';
+      left.append(blocks[1],blocks[3],blocks[2],blocks[6]);
+      right.append(blocks[4],blocks[5]);
+      editor.replaceChildren(left,right);
+    }
+  }
+  const body=root.querySelector('.hero-dialog-scroll');if(body)body.scrollTop=scroll;
+  syncOverlayInert();
+}
+function openHeroDialog(heroId){
+  if(!h(heroId))return;
+  heroDialogReturnId=heroId;
+  state.selectedHero=heroId;
+  state.activeSlot='weapon';
+  state.selectedItem=heroGear(heroId).weapon;
+  if(state.view!=='heroes'){state.search='';state.sortKey='';}
+  state.view='heroes';state.heroDialogOpen=true;
+  render();
+  document.querySelector('[data-action="closeHeroDialog"]')?.focus();
+}
+function closeHeroDialog(){
+  if(!state.heroDialogOpen)return;
+  const restoreId=heroDialogReturnId||state.selectedHero;
+  state.heroDialogOpen=false;
+  render();
+  (document.querySelector(`[data-open-hero="${restoreId}"]`)||document.querySelector('[data-nav="heroes"]'))?.focus();
+}
+function focusInDialog(dialog,e){
+  const nodes=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.getClientRects().length);
+  if(!nodes.length)return;
+  const first=nodes[0],last=nodes.at(-1);
+  if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus()}
+}
 function renderView(){return ({overview,heroes:heroesView,equipment:()=>inventoryView('equipment'),relics:()=>inventoryView('relics'),resources:resourceView,battles:battlesView,arena:arenaView,planner:plannerView})[state.view]()}
-function render(){app.innerHTML=shell();syncRecordCount();renderToast()}
+function render(){
+  const body=document.querySelector('.hero-dialog-scroll');
+  const scroll=body?.scrollTop||0;
+  const active=document.activeElement;
+  const activeInHero=Boolean(body?.contains(active));
+  const activeId=activeInHero&&active?.id||'';
+  const activeAction=activeInHero&&active?.dataset?.action||'';
+  const activeSlot=activeInHero&&active?.dataset?.selectSlot||'';
+  app.innerHTML=shell();syncRecordCount();renderToast();showHeroDialog(scroll);
+  if(activeInHero&&state.heroDialogOpen){
+    const target=activeId?document.getElementById(activeId):activeAction?document.querySelector(`.hero-detail-dialog [data-action="${activeAction}"]`):activeSlot?document.querySelector(`.hero-detail-dialog [data-select-slot="${activeSlot}"]`):null;
+    target?.focus({preventScroll:true});
+  }
+}
 function syncRecordCount(){const node=document.querySelector('#record-count'),tableRows=document.querySelectorAll('.data-table tbody tr');if(node)node.textContent=state.view==='heroes'?`${visibleHeroes().length} of ${heroes.length} heroes`:`${tableRows.length} records`}
 function changeHero(id,field,value){const base=h(id),prior=state.changes[id]||{};const next={...prior,[field]:field==='level'?Math.min(base.max,Math.max(base.level,Number(value))):value};if(Object.keys(next).every(k=>next[k]===base[k]))delete state.changes[id];else state.changes[id]=next;saveDraft();render()}
 function applyRecipe(battleId){
@@ -361,6 +441,7 @@ function openEquipmentPicker(launcher){
   </section></div>`;
   document.querySelector('#modal-root').innerHTML=html;
   for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))el.setAttribute('inert','');
+  syncOverlayInert();
   renderPickerCards();
   document.querySelector('#picker-search')?.focus();
 }
@@ -368,7 +449,7 @@ function closeEquipmentPicker(){
   if(!equipmentPicker)return;
   equipmentPicker=null;
   document.querySelector('#modal-root').innerHTML='';
-  for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))el.removeAttribute('inert');
+  syncOverlayInert();
   const restore=pickerLauncher?.isConnected?pickerLauncher:document.querySelector('[data-action="openEquipmentPicker"]');
   pickerLauncher=null;
   restore?.focus();
@@ -443,6 +524,7 @@ function openRelicPicker(launcher){
   </section></div>`;
   document.querySelector('#modal-root').innerHTML=html;
   for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))el.setAttribute('inert','');
+  syncOverlayInert();
   renderRelicPickerCards();
   document.querySelector('#relic-picker-search')?.focus();
 }
@@ -450,7 +532,7 @@ function closeRelicPicker(){
   if(!relicPicker)return;
   relicPicker=null;
   document.querySelector('#modal-root').innerHTML='';
-  for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))el.removeAttribute('inert');
+  syncOverlayInert();
   const restore=pickerLauncher?.isConnected?pickerLauncher:document.querySelector('[data-action="openRelicPicker"]');
   pickerLauncher=null;
   restore?.focus();
@@ -467,6 +549,7 @@ function chooseRelicPickerItem(itemId){
 function savePlanModal(){const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" data-action="closeModal"><form id="save-form" class="modal" role="dialog" aria-modal="true" aria-label="Save plan"><div class="modal-head"><h2>Save upgrade plan</h2><button type="button" class="icon-button" data-action="closeModal">×</button></div><p>Your current changes will be saved locally in this browser, not applied to the game.</p><label class="field-label" for="plan-name">Plan name</label><input id="plan-name" name="name" required maxlength="60" value="Battle improvements ${new Date().toLocaleDateString('en-GB')}"/><div class="modal-actions"><button type="button" class="btn secondary" data-action="closeModal">Cancel</button><button type="submit" class="btn primary">Save locally</button></div></form></div>`;root.querySelector('#plan-name')?.focus()}
 function act(action){
   if(action.startsWith('go')){goto(({goPlanner:'planner',goArena:'arena',goHeroes:'heroes',goBattles:'battles'})[action]);return}
+  if(action==='closeHeroDialog'){closeHeroDialog();return}
   if(action==='showAllHeroes'){state.heroChangedOnly=false;state.search='';render();return}
   if(action==='resetHero'){resetHeroDraft(state.selectedHero);toast('Hero draft reset');return;}
   if(action==='resetChanges'){state.changes={};state.assignments={};state.itemLevels={};saveDraft();render();toast('Draft cleared');return}
@@ -494,13 +577,19 @@ document.addEventListener('click',e=>{
     if(e.target.closest('[data-picker-clear]')){Object.assign(equipmentPicker,{search:'',rarity:'All',set:'All',ownership:'All',sort:'Highest level'});document.querySelector('#picker-search').value='';for(const field of ['rarity','set','ownership','sort'])document.querySelector('#picker-'+field).value=equipmentPicker[field];renderPickerCards();document.querySelector('#picker-search')?.focus();return}
     return; // Ignore all page interactions beneath a modal.
   }
+  const heroBackdrop=e.target.closest('[data-hero-backdrop]');
+  if(heroBackdrop&&heroBackdrop===e.target){closeHeroDialog();return}
+  const openDetail=e.target.closest('[data-open-hero]');if(openDetail){openHeroDialog(openDetail.dataset.openHero);return}
   const slot=e.target.closest('[data-select-slot]');if(slot){state.activeSlot=slot.dataset.selectSlot;state.selectedItem=heroGear(slot.dataset.forHero)[state.activeSlot];render();return}
   const item=e.target.closest('[data-item]');if(item){state.selectedItem=item.dataset.item;render();return}
   const relicRow=e.target.closest('[data-relic]');if(relicRow){state.selectedRelic=relicRow.dataset.relic;render();return}
-  const relicUser=e.target.closest('[data-relic-user]');if(relicUser){state.heroChangedOnly=false;state.selectedHero=relicUser.dataset.relicUser;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;goto('heroes');return}
+  const relicUser=e.target.closest('[data-relic-user]');if(relicUser){state.heroChangedOnly=false;openHeroDialog(relicUser.dataset.relicUser);return}
   const resetItem=e.target.closest('[data-reset-item]');if(resetItem){delete state.itemLevels[resetItem.dataset.resetItem];saveDraft();render();return}
   const nav=e.target.closest('[data-nav]');if(nav){goto(nav.dataset.nav);return}
-  const hero=e.target.closest('[data-hero]');if(hero){state.selectedHero=hero.dataset.hero;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;goto('heroes');return}
+  const hero=e.target.closest('[data-hero]');if(hero){
+    if(state.view!=='heroes'){openHeroDialog(hero.dataset.hero);return}
+    state.selectedHero=hero.dataset.hero;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;render();return;
+  }
   const battle=e.target.closest('[data-battle]');if(battle){state.selectedBattle=battle.dataset.battle;goto('battles');return}
   const opp=e.target.closest('[data-opponent]');if(opp){state.selectedOpponent=opp.dataset.opponent;goto('arena');return}
   const remove=e.target.closest('[data-reset-hero]');if(remove){resetHeroDraft(remove.dataset.resetHero);return}
@@ -516,10 +605,12 @@ document.addEventListener('input',e=>{
     const start=e.target.selectionStart;state.search=e.target.value;const view=document.querySelector('#view-content');
     if(view){view.innerHTML=renderView();syncRecordCount();const input=document.querySelector('#global-search');input?.focus();input?.setSelectionRange(start,start)}return;
   }
-  if(e.target.id==='hero-level')changeHero(e.target.dataset.heroId,'level',e.target.value);
-  if(e.target.id==='item-level')changeItemLevel(e.target.dataset.itemId,e.target.value);
+  if(e.target.id==='hero-level'){const label=e.target.closest('.inspector-section')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${h(e.target.dataset.heroId)?.max||''}`;return}
+  if(e.target.id==='item-level'){const label=e.target.closest('.item-upgrade')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${eq(e.target.dataset.itemId)?.maxLevel||''}`;return}
 });
 document.addEventListener('change',e=>{
+  if(e.target.id==='hero-level'){changeHero(e.target.dataset.heroId,'level',e.target.value);return}
+  if(e.target.id==='item-level'){changeItemLevel(e.target.dataset.itemId,e.target.value);return}
   if(relicPicker&&['relic-picker-type','relic-picker-rarity','relic-picker-assignment','relic-picker-sort'].includes(e.target.id)){relicPicker[e.target.id.replace('relic-picker-','')]=e.target.value;renderRelicPickerCards();return}
   if(equipmentPicker&&['picker-rarity','picker-set','picker-ownership','picker-sort'].includes(e.target.id)){
     equipmentPicker[e.target.id.replace('picker-','')]=e.target.value;renderPickerCards();return;
@@ -530,17 +621,14 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(!equipmentPicker&&!relicPicker){
+    if(state.heroDialogOpen&&e.key==='Escape'){e.preventDefault();closeHeroDialog();return}
+    if(state.heroDialogOpen&&e.key==='Tab'){const dialog=document.querySelector('.hero-detail-dialog');if(dialog){focusInDialog(dialog,e);return}}
     if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('[data-relic]')){e.preventDefault();state.selectedRelic=e.target.dataset.relic;render();document.querySelector('[data-relic=\"'+state.selectedRelic+'\"]')?.focus();}
     return;
   }
   if(e.key==='Escape'){e.preventDefault();if(relicPicker)closeRelicPicker();else closeEquipmentPicker();return}
   if(e.key!=='Tab')return;
-  const modal=document.querySelector('.equipment-picker');if(!modal)return;
-  const focusables=[...modal.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.getClientRects().length);
-  if(!focusables.length)return;
-  const first=focusables[0],last=focusables.at(-1);
-  if(e.shiftKey&&(document.activeElement===first||!modal.contains(document.activeElement))){e.preventDefault();last.focus()}
-  else if(!e.shiftKey&&(document.activeElement===last||!modal.contains(document.activeElement))){e.preventDefault();first.focus()}
+  const modal=document.querySelector('.equipment-picker');if(modal)focusInDialog(modal,e);
 });
 document.addEventListener('submit',e=>{if(e.target.id!=='save-form')return;e.preventDefault();const name=e.target.elements.name.value.trim();if(!name)return;state.plans.unshift({name,created:new Date().toLocaleDateString('en-GB'),count:Object.keys(state.changes).length+Object.keys(state.assignments).length+Object.keys(state.itemLevels).length,changes:structuredClone(state.changes),assignments:structuredClone(state.assignments),itemLevels:structuredClone(state.itemLevels)});state.plans=state.plans.slice(0,20);saveDraft();render();toast(`Saved plan: ${name}`)});
 render();
