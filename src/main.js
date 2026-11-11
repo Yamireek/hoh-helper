@@ -1,10 +1,11 @@
 import {heroes,equipment,equipmentSlots,equipmentSets,relics,resources,squads,opponents,battles,recipes,formatNum} from './mock-data.js';
+
 const app=document.getElementById('app');
 const STORAGE='hoh-desktop-prototype-v2';
 const baseChanges={};
 const load=()=>{try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return {}}};
 let persisted=load();
-const state={view:'overview',search:'',heroChangedOnly:false,sortKey:'',sortDir:1,selectedHero:'leonardo',selectedBattle:'b1',selectedOpponent:'opp1',battleFilter:'Needs improvement',arenaMode:'All',changes:persisted.changes||{},assignments:persisted.assignments||{},itemLevels:persisted.itemLevels||{},plans:persisted.plans||[],selectedItem:'scientist-pen',activeSlot:'weapon',activeTab:'Details',toast:'',sidebarCollapsed:false};
+const state={view:'overview',search:'',heroChangedOnly:false,sortKey:'',sortDir:1,selectedHero:'leonardo',selectedBattle:'b1',selectedOpponent:'opp1',battleFilter:'Needs improvement',arenaMode:'All',changes:persisted.changes||{},assignments:persisted.assignments||{},itemLevels:persisted.itemLevels||{},plans:persisted.plans||[],selectedItem:'scientist-pen',selectedRelic:'guardian-lion',activeSlot:'weapon',activeTab:'Details',toast:'',sidebarCollapsed:false};
 const icons={overview:'▦',heroes:'♜',equipment:'⚒',relics:'◇',resources:'◉',battles:'⚑',arena:'♟',planner:'◷'};
 const menus=[['overview','Overview'],['heroes','Heroes'],['equipment','Equipment'],['relics','Relics'],['resources','Resources'],['battles','Battle records'],['arena','Arena optimizer'],['planner','Upgrade planner']];
 const h=id=>heroes.find(x=>x.id===id);
@@ -146,7 +147,7 @@ const toast=msg=>{state.toast=msg;renderToast();clearTimeout(timer);timer=setTim
 function renderToast(){document.querySelector('#toast')?.replaceChildren();if(state.toast){const el=document.createElement('div');el.className='toast-message';el.textContent=state.toast;document.querySelector('#toast')?.append(el)}}
 function goto(view){state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
 const statusDot=t=>t==='Defeat'?'danger':t==='Victory'?'success':'warning';
-const titleFor=()=>({overview:['Command center','Your battle performance and the next lowest-cost improvements'],heroes:['Hero roster','Inspect stats, experiment with upgrades, and save a draft build'],equipment:['Equipment inventory','Compare items, bonuses, and current assignment'],relics:['Relic vault','Owned relics and their effects across your roster'],resources:['Resources & farming','Available currency, estimated income, and upgrade shortages'],battles:['Battle records','Prioritize failed and sub-3-star battles by farming time'],arena:['Arena optimizer','Select the best saved formation or generate a candidate'],planner:['Upgrade planner','Review all drafted changes and their combined farming costs']})[state.view];
+const titleFor=()=>({overview:['Command center','Your battle performance and the next lowest-cost improvements'],heroes:['Hero roster','Inspect stats, experiment with upgrades, and save a draft build'],equipment:['Equipment inventory','Compare items, bonuses, and current assignment'],relics:['Relic vault','Inspect individual relic stats, abilities and equipped heroes'],resources:['Resources & farming','Available currency, estimated income, and upgrade shortages'],battles:['Battle records','Prioritize failed and sub-3-star battles by farming time'],arena:['Arena optimizer','Select the best saved formation or generate a candidate'],planner:['Upgrade planner','Review all drafted changes and their combined farming costs']})[state.view];
 function shell(){return `<div class="app-shell">
   <header class="topbar"><div class="product"><span class="product-mark">✣</span><span><b>BATTLE LAB</b><small>HEROES OF HISTORY</small></span></div><div class="top-center"><span class="connected"><i></i> Offline prototype</span><span class="top-divider"></span><span>Mock snapshot <strong>11 Nov 2026</strong></span></div><div class="top-actions">${badge('DEMO DATA','demo')}<span class="top-divider"></span><span class="profile-icon">P</span></div></header>
   <aside class="sidebar"><div class="nav-caption">WORKSPACE</div>${menus.slice(0,6).map(([id,label])=>`<button class="nav-item ${state.view===id?'selected':''}" data-nav="${id}"><span class="nav-icon">${icons[id]}</span><span>${label}</span>${id==='battles'?`<span class="nav-count">${battles.filter(x=>x.stars<3).length}</span>`:''}</button>`).join('')}
@@ -202,10 +203,42 @@ function heroInspector(){
   <div class="inspector-section costs-section"><div class="section-head"><b>Incremental hero cost</b></div><div class="chip-grid">${costChips(cost)}</div><div class="estimate-line"><span>Whole draft farm shortfall</span><strong>${farmDays(allCosts()).toFixed(1)} days</strong></div><p class="muted hint">Gear swaps cost 0 in this mock; unique item upgrades are included in the whole plan.</p></div>
   <div class="inspector-actions">${btn('Review combined plan','goPlanner','primary')}${btn('Discard this hero changes','resetHero')}</div>`;
 }
+// Relic vault detail — docs/DESIGN.md §19. Read-only; type ownership is shared in mock fixtures.
+function relicDetailInspector(item){
+  if(!item)return `<div class="inspector-heading">RELIC DETAILS ${badge('Mock data','demo')}</div><div class="relic-detail-empty"><span aria-hidden="true">◇</span><strong>No relic selected</strong><p>Choose a relic from the table, or clear the search filter.</p></div>`;
+  const users=relicUsers(item.id);
+  const stats=Array.isArray(item.stats)?item.stats:[];
+  const knownMax=Number.isFinite(item.maxLevel);
+  const fullLevel=knownMax?`${item.level}/${item.maxLevel}`:`${item.level} / —`;
+  const starsLine=Number.isFinite(item.stars)?`<span class="relic-detail-stars" aria-label="${item.stars} stars">${'★'.repeat(item.stars)}</span>`:'';
+  const statLines=stats.length?stats.map(stat=>`<div class="relic-detail-stat"><span>${esc(stat.label)}</span><strong>${fmt(stat.value)}${stat.unit==='percent'?'%':''}</strong></div>`).join(''):`<div class="relic-missing-stats"><b>Stats not captured</b><small>This relic's ATK, DEF and other attributes are not present in the mock snapshot.</small></div>`;
+  return `<div class="inspector-heading">RELIC DETAILS ${badge('Mock data','demo')}</div>
+    <div class="inspector-section relic-detail-body">
+      <div class="relic-detail-identity ${esc(item.rarity.toLowerCase())}">
+        <div class="relic-detail-art" aria-label="Illustrative icon, not game artwork"><span aria-hidden="true">${esc(item.icon)}</span><small>Icon preview</small></div>
+        <div class="relic-detail-title"><small>${esc(item.rarity)} · ${esc(item.type)}</small><h2>${esc(item.name)}</h2>${starsLine}<strong class="relic-detail-level">LVL. ${fullLevel}</strong></div>
+      </div>
+      <div class="relic-detail-stat-panel"><div class="relic-detail-section-label">BASE ATTRIBUTES</div>${statLines}</div>
+      <div class="relic-ability-panel"><div class="relic-detail-section-label">ABILITY / EFFECT</div><div class="relic-ability-heading"><strong>${esc(item.abilityName||'Effect')}</strong>${Number.isFinite(item.cooldownSeconds)?`<span>${item.cooldownSeconds.toFixed(2)}s cooldown</span>`:''}</div><p>${esc(item.abilityDescription||item.effect)}</p></div>
+      <div class="relic-detail-metadata"><div><span>Level</span><strong>${fullLevel}</strong></div><div><span>Mock copies</span><strong>${item.charges}</strong></div><div><span>Transcendence</span><strong>${knownMax&&item.level>=item.maxLevel?'Max level · transcendence unverified':'Not captured'}</strong></div></div>
+    </div>
+    <div class="inspector-section relic-users-section"><div class="section-head"><b>Equipped by (${users.length})</b>${badge('Draft assignments')}</div>
+      ${users.length?users.map(hero=>`<button type="button" class="relic-user-row" data-relic-user="${esc(hero.id)}"><span>${portrait(hero)}<span><strong>${esc(hero.name)}</strong><small>${esc(hero.faction)} · ${esc(hero.role)}</small></span></span><span class="relic-user-arrow">Open hero ›</span></button>`).join(''):'<p class="muted hint">No heroes currently use this relic type.</p>'}
+      <p class="muted relic-readonly-hint">Read-only preview. Relic upgrades, transcendence costs and real copy ownership are not connected; selecting a relic here never changes game data.</p>
+    </div>`;
+}
 function inventoryView(type){
   if(type==='relics'){
-    const filtered=sortedFiltered(relics,state.search,x=>Object.values(x).join(' '));
-    return `<section class="panel table-panel full-panel">${toolbar('Search relics...')}${table([{label:'Relic',key:'name'},{label:'Rarity',key:'rarity'},{label:'Type',key:'type'},{label:'Level',key:'level',align:'number'},{label:'Effect'},{label:'Copies',key:'charges',align:'number'}],filtered.map(item=>`<tr><td><span class="entity-line"><span class="item-icon relic-icon">${item.icon}</span><strong>${esc(item.name)}</strong></span></td><td>${badge(item.rarity)}</td><td>${esc(item.type)}</td><td class="number">${item.level}</td><td>${esc(item.effect)}</td><td class="number">${item.charges}</td></tr>`))}</section>`;
+    const filtered=sortedFiltered(relics,state.search,x=>`${x.name} ${x.rarity} ${x.type} ${x.effect} ${(x.stats||[]).map(s=>s.label+' '+s.value).join(' ')} ${relicUsers(x.id).map(h=>h.name).join(' ')}`);
+    if(filtered.length&&!filtered.some(item=>item.id===state.selectedRelic))state.selectedRelic=filtered[0].id;
+    const selected=filtered.find(item=>item.id===state.selectedRelic)||null;
+    return `<div class="split-view equipment-view relic-vault-view"><section class="panel table-panel">${toolbar('Search relic, ability or hero...')}${table([
+      {label:'Relic',key:'name'},{label:'Rarity',key:'rarity'},{label:'Type',key:'type'},{label:'Level',key:'level',align:'number'},
+      {label:'Effect'},{label:'Mock copies',key:'charges',align:'number'},{label:'Used by'}
+    ],filtered.map(item=>{
+      const users=relicUsers(item.id);
+      return `<tr class="clickable relic-table-row ${selected?.id===item.id?'active-row':''}" data-relic="${esc(item.id)}" tabindex="0" aria-selected="${selected?.id===item.id}"><td><span class="entity-line"><span class="item-icon relic-icon">${esc(item.icon)}</span><span><strong>${esc(item.name)}</strong><small>${item.stars?'★'.repeat(item.stars)+' · ':''}${esc(item.abilityName||item.type)}</small></span></span></td><td>${badge(item.rarity,item.rarity==='Legendary'?'rarity':'neutral')}</td><td>${esc(item.type)}</td><td class="number">${item.level}${item.maxLevel?` / ${item.maxLevel}`:''}</td><td class="relic-effect-preview">${esc(item.effect)}</td><td class="number">${item.charges}</td><td>${users.length?users.map(hero=>esc(hero.name)).join(', '):'<span class="muted">Unassigned</span>'}</td></tr>`;
+    }), 'No relics match this search')}</section><aside class="inspector relic-detail-inspector">${relicDetailInspector(selected)}</aside></div>`;
   }
   const filtered=sortedFiltered(equipment,state.search,x=>`${x.name} ${x.slot} ${x.setId} ${x.rarity} ${x.stats.map(statText).join(' ')}`);
   return `<div class="split-view equipment-view"><section class="panel table-panel">${toolbar('Search equipment, stat, set...')}${table([
@@ -463,6 +496,8 @@ document.addEventListener('click',e=>{
   }
   const slot=e.target.closest('[data-select-slot]');if(slot){state.activeSlot=slot.dataset.selectSlot;state.selectedItem=heroGear(slot.dataset.forHero)[state.activeSlot];render();return}
   const item=e.target.closest('[data-item]');if(item){state.selectedItem=item.dataset.item;render();return}
+  const relicRow=e.target.closest('[data-relic]');if(relicRow){state.selectedRelic=relicRow.dataset.relic;render();return}
+  const relicUser=e.target.closest('[data-relic-user]');if(relicUser){state.heroChangedOnly=false;state.selectedHero=relicUser.dataset.relicUser;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;goto('heroes');return}
   const resetItem=e.target.closest('[data-reset-item]');if(resetItem){delete state.itemLevels[resetItem.dataset.resetItem];saveDraft();render();return}
   const nav=e.target.closest('[data-nav]');if(nav){goto(nav.dataset.nav);return}
   const hero=e.target.closest('[data-hero]');if(hero){state.selectedHero=hero.dataset.hero;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;goto('heroes');return}
@@ -494,7 +529,10 @@ document.addEventListener('change',e=>{
   if(e.target.id==='arena-mode'){state.arenaMode=e.target.value;render()}
 });
 document.addEventListener('keydown',e=>{
-  if(!equipmentPicker&&!relicPicker)return;
+  if(!equipmentPicker&&!relicPicker){
+    if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('[data-relic]')){e.preventDefault();state.selectedRelic=e.target.dataset.relic;render();document.querySelector('[data-relic=\"'+state.selectedRelic+'\"]')?.focus();}
+    return;
+  }
   if(e.key==='Escape'){e.preventDefault();if(relicPicker)closeRelicPicker();else closeEquipmentPicker();return}
   if(e.key!=='Tab')return;
   const modal=document.querySelector('.equipment-picker');if(!modal)return;

@@ -76,6 +76,13 @@ for(const hero of heroes){
   delete hero.equipment;
 }
 export const relics = [
+  // Values for Guardian Lion are transcribed from the user-provided UI reference.
+  // Other inventory data remains illustrative; missing attributes must not be invented.
+  {id:'guardian-lion',name:'Guardian Lion',type:'Defense',rarity:'Legendary',level:10,maxLevel:10,stars:5,
+    stats:[{key:'atk',label:'ATK',value:46,unit:'flat'},{key:'def',label:'DEF',value:138,unit:'flat'}],
+    abilityName:'CLEANSE',abilityDescription:'Grants Immunity to being stunned, with a cooldown of 9.60s between uses',
+    cooldownSeconds:9.60,effect:'Grants Immunity to being stunned, with a cooldown of 9.60s between uses',
+    charges:1,icon:'♌'},
   {id:'insight',name:'Lens of Insight',type:'Offense',rarity:'Legendary',level:8,effect:'Skill power +18%',charges:3,icon:'◇'},
   {id:'serpent',name:'Serpent Sigil',type:'Utility',rarity:'Epic',level:6,effect:'Debuff duration +12%',charges:2,icon:'◉'},
   {id:'valor',name:'Medallion of Valor',type:'Offense',rarity:'Legendary',level:9,effect:'Critical damage +16%',charges:1,icon:'✧'},

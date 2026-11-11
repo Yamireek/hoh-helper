@@ -13,4 +13,6 @@ assert(code.includes('filteredPickerItems')&&code.includes('choosePickerItem'),'
 assert(doc.includes('## 18. Relic card-picker dialog'),'Relic picker must be documented before UI');
 assert(code.includes('filteredRelicItems')&&code.includes('chooseRelicPickerItem'),'Relic picker logic is required');
 assert(!code.includes('<select id="hero-relic"'),'Native relic selector is forbidden');
+assert(doc.includes('## 19. Relic Vault — persistent right-hand detail inspector'),'Relic side inspector design required');
+assert(code.includes('relicDetailInspector')&&code.includes('data-relic='),'Relic inspector required');
 console.log('Source and design checks: OK');
