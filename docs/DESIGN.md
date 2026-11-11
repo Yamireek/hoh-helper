@@ -389,3 +389,22 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 - Confirm the actions column scrolls horizontally exactly like the other columns at narrower widths, does not overlap adjacent data, and does not change the row selection behavior. No outer-page overflow.
 
 **Regression checks:** tests must require icon-only button markup and accessibility labels, assert the absence of pinned-last-column CSS, and retain hero-dialog interaction and viewport tests.
+
+## 22. Single hero identity and top-level editing (2026-11-11)
+
+**Supersedes the repeated profile card and lower-placed level slider from §20.** The full-size hero dialog must show the hero's identity in exactly one location: the fixed modal header. Do not repeat its portrait, name, faction or role in a second profile card inside the scrollable body.
+
+- **Header is the canonical hero identity:** portrait/initials, hero name, faction, role, star rating, original and planned level summary, mock-data indicator, live Edited / Unchanged change count and Close. Keep the five-star rating formerly shown in the redundant body card; it must remain visible in the header. Preserve the heading and accessible dialog description.
+- **Promote hero level editing to the very first content card, immediately below the header at the top-left of the body.** Label it **Hero level**, display the live planned level / cap prominently, keep the original snapshot level next to it, and provide the existing bounded slider without changing its min/max, persistence or costing semantics.
+- The level editor is visually distinct but compact, with a horizontal value/label region and an obvious range track. Its level text refreshes while dragging; on change the entire draft state, modal header, roster before → after diff, Edited badge and farming costs update as before. Keyboard slider access remains available.
+- The right column begins directly with five equipment slots and set/selected-item details. The rest of the left column continues with **Base attributes**, **Changes from snapshot** and **Incremental hero cost**. The lower-right relic card is titled **Relic** and contains only relic assignment/preview, not a second level editor.
+- Do not make the modal taller or add a new independent scroll region. Maintain one scrollable body, fixed header/footer, two responsive columns stacking below 900px, themed scrollbars, nested equipment/relic picker behavior and no root overflow at 1440×900, 1920×1080 and 900×720.
+- Update the dialog composition logic so it assembles the new **level** card first instead of a duplicate **profile** card. Remove dead, profile-card-specific styles in favor of level-card styles. Preserve every existing draft, save/reset, and dialog focus interaction.
+
+### Acceptance
+
+1. Exactly one portrait and name appear in the hero detail dialog (in header); the body contains no duplicate identity card.
+2. Stars appear in the header and the level slider is the first editable body control, above equipment/relic assignment controls.
+3. Level changes reflect immediately in header, slider value, roster change diff and computed costs; reset reverts level without closing the dialog.
+4. Relic selector, equipment slots and both nested picker dialogs remain available, accessible and functional.
+5. Source/design checks, hero dialog regression tests, build and browser viewport checks pass.
