@@ -349,7 +349,7 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 5. No outer-document overflow at 1440×900 or 1920×1080. Tables, side panels and narrow screens scroll internally; at compact widths the inspector stacks below the table as already specified for Equipment.
 6. Equipment view, Heroes relic picker, planner costs and saved plans continue to pass `npm run check`, `npm run test`, `npm run build`.
 
-## 20. Hero roster opens full-size detail dialog (2026-11-11)
+## 20. Hero roster opens a full-size detail dialog (2026-11-11)
 
 **Supersedes previous Heroes side-inspector requirements.** The Heroes roster occupies the full workspace width and never reserves a narrow side inspector. Equipment and Relics navigation views retain their side inspectors.
 
