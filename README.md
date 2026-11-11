@@ -25,13 +25,9 @@ npm run preview
 
 ## Visual previews
 
-![Changed-only hero roster with before/after comparisons](docs/previews/hero-roster-changed-1440x900.png)
+The working prototype is available in [`standalone.html`](standalone.html) and the editable sources are in [`src/`](src/). For layout and interaction details, read [`docs/DESIGN.md`](docs/DESIGN.md), especially sections 16 and 17.
 
-![Filterable equipment card picker dialog](docs/previews/equipment-picker-1440x900.png)
-
-![Equipment inventory and full item stats](docs/previews/equipment-desktop.png)
-
-See also [1920×1080 changed-only roster](docs/previews/hero-roster-changed-1920x1080.png) and [hero equipment details](docs/previews/hero-equipment-details.png). Screenshots illustrate the mock prototype; the equipment picker is documented in §16 and roster change visibility in §17 of `docs/DESIGN.md`. Dark themed scrollbars are used throughout the application.  `docs/DESIGN.md` is authoritative if a screenshot and specification differ.
+The original desktop screenshots are currently distributed with the downloadable prototype archive, rather than committed to this repository.
 
 ## Demo workflows
 
@@ -47,15 +43,14 @@ See also [1920×1080 changed-only roster](docs/previews/hero-roster-changed-1920
 
 Mock values are **not** scraped from your game account; probabilities are not measured and recommendations are not tested with the native game engine. This repository intentionally contains no capture system, credentials, API access, in-game click automation, or production optimizer. The planner must not be used for real-game spending decisions without integrating the verified production engine and data.
 
-## GitHub repository setup
+## Clone this repository
 
 ```bash
-git init
-git add .
-git commit -m "Create Battle Lab desktop prototype and design specification"
-git branch -M main
-git remote add origin https://github.com/YOUR_ACCOUNT/hoh-desktop-prototype.git
-git push -u origin main
+git clone https://github.com/Yamireek/hoh-helper.git
+cd hoh-helper
+npm run check
+npm test
+npm run build
+npm run dev
 ```
 
-Create the empty repository on GitHub first, replacing `YOUR_ACCOUNT`. This prototype is a separate repository so it cannot overwrite or regress `hoh-battle-extension`. Later implementation should port the design documented in `docs/DESIGN.md` into the real extension through its own version control workflow.
