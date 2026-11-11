@@ -433,3 +433,14 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 3. Transferred baseline equipment moves back without duplicates; the former recipient's slot becomes empty and their Edited status updates accordingly.
 4. Reverting a remaining change to baseline removes only its own row, does not reset unrelated changes, and does not dismiss the modal.
 5. No root overflow at 1440×900, 1920×1080 or 900×720. Source/design checks, automated tests, build and keyboard interactions pass.
+
+## 24. Standalone HTML must launch without a development server (2026-11-11)
+
+**Build integrity and startup are part of the UI contract.** The prototype is delivered both as modular development sources and as a `standalone.html` file intended for double-click opening from a local `file://` URL, including Brave/Chromium. A blank dark workspace is never an acceptable fallback.
+
+- `standalone.html` must embed the **complete** CSS, mock fixture data, and complete application JavaScript. Neither `src/main.js` nor the standalone inline script may be truncated, even when upload connectors have per-response text limits. Do not use a partial `fetch_file` response to rewrite a large source file.
+- The HTML must have the required `#app` root, and boot must populate it with the sidebar, header, navigation and overview without any requests, imports, CDN assets, bundler, local HTTP server, or external storage.
+- Add a standalone artifact integrity check: extract its inline script, verify it parses with `node --check`, and verify the end of the script contains the complete boot call and is identical in substance to the modular source plus embedded fixtures. Fail CI if the script is truncated or if the output cannot render.
+- Add a smoke test that evaluates the actual standalone HTML in a browser and checks for `BATTLE LAB`, the sidebar and visible overview content without any page errors. The acceptance test must work without relying on network requests.
+- Gracefully handle inaccessible/corrupt local storage: load defaults, and keep the UI usable in-memory rather than throwing and leaving a blank screen. Provide a visible, readable bootstrap error panel if unexpected startup failures occur, so debugging does not require DevTools.
+- Keep the existing `100vw × 100vh` desktop shell and no outer-document scrolling. All existing interaction and planner behavior remains unchanged.
