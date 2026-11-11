@@ -21,4 +21,7 @@ assert(css.includes('.hero-detail-dialog')&&css.includes('.hero-roster-full'),'F
 assert(doc.includes('## 21. Hero roster details action uses a compact table icon'),'Icon-column design contract missing');
 assert(code.includes('class="hero-detail-open"')&&code.includes('title="Open details for'),'Icon-only accessible hero details button missing');
 assert(!css.includes('.hero-roster-full .data-table th:last-child'),'Hero details column must not be pinned or specially shaded');
+assert(doc.includes('## 22. Single hero identity and top-level editing'),'New hero dialog design contract missing');
+assert(code.includes('hero-level-card')&&code.includes('hero-dialog-stars'),'Hero stars and prominent level required');
+assert(!code.includes('class="hero-profile"'),'Redundant hero identity card forbidden');
 console.log('Source and design checks: OK');

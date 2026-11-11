@@ -60,3 +60,7 @@ npm run dev
 The full-width Heroes roster now provides an **Open details** button on each row. It opens a large desktop dialog with hero attributes, complete before/after changes, all five equipment slots, item/set details, relic picker, and farming costs. The equipment/relic card pickers open above this dialog and return to it on selection or cancel. Draft and saved-plan semantics stay local-only; the prototype never changes in-game data.
 
 See the source-of-truth contract in [docs/DESIGN.md](docs/DESIGN.md) and the mandatory design-first rules in [AGENTS.md](AGENTS.md).
+
+### Single hero identity and top-level level editor
+
+The Heroes dialog renders the portrait, name, faction, role, stars and level once in its fixed header. The planned level slider is the first card in the dialog, immediately above attributes and draft changes; Relic is a separate right-column card. See `docs/DESIGN.md` §22.

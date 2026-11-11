@@ -230,13 +230,8 @@
 .hero-dialog-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px;scrollbar-width:thin;scrollbar-color:#49667a #121e2c}
 .hero-dialog-scroll::-webkit-scrollbar{width:8px;height:8px}
 .hero-dialog-scroll::-webkit-scrollbar-thumb{background:#49667a;border-radius:8px;border:2px solid #152233}
-.hero-dialog-editor{display:grid;grid-template-columns:minmax(280px,.86fr) minmax(0,1.42fr);grid-template-areas:'profile gear' 'attributes gear' 'changes gear' 'cost relic';align-content:start;align-items:start;gap:12px 15px}
+.hero-dialog-editor{display:grid;grid-template-columns:minmax(280px,.86fr) minmax(0,1.42fr);grid-template-areas:'level gear' 'attributes gear' 'changes gear' 'cost relic';align-content:start;align-items:start;gap:12px 15px}
 .hero-dialog-editor>.inspector-heading,.hero-dialog-editor>.inspector-actions{display:none}
-.hero-dialog-editor>.hero-profile{grid-area:profile;text-align:left;display:grid;grid-template-columns:80px 1fr;column-gap:13px;align-content:center;padding:17px;background:#192b3b;border:1px solid #354e61;border-radius:9px}
-.hero-dialog-editor>.hero-profile .portrait{grid-column:1;grid-row:1/span 3}
-.hero-dialog-editor>.hero-profile h2{grid-column:2;grid-row:1;font-size:18px;margin:4px 0 4px}
-.hero-dialog-editor>.hero-profile .muted{grid-column:2;grid-row:2}
-.hero-dialog-editor>.hero-profile .hero-stars{grid-column:2;grid-row:3;margin-top:5px}
 .hero-dialog-editor>.inspector-section{padding:16px 17px;border:1px solid #33475a;border-radius:9px;background:#192635;min-width:0}
 .hero-dialog-editor>.hero-draft-inspector{grid-area:changes;background:linear-gradient(140deg,#1f353b,#1b2936)}
 .hero-dialog-editor>.inspector-section:nth-child(4){grid-area:attributes}
@@ -254,16 +249,22 @@
 .hero-dialog-footer .btn{padding:10px 14px}
 #hero-modal-root[inert]{pointer-events:none}
 @media(max-width:1000px){.hero-detail-dialog{width:calc(100vw - 26px);height:calc(100vh - 32px);max-height:calc(100vh - 32px)}.hero-dialog-editor{grid-template-columns:minmax(235px, .83fr) minmax(0,1.17fr)}.hero-dialog-heading{padding:12px 16px}.hero-dialog-scroll{padding:13px}}
-@media(max-width:900px){.hero-dialog-editor{display:flex;flex-direction:column}.hero-dialog-editor>.hero-profile,.hero-dialog-editor>.inspector-section{width:100%}.hero-dialog-editor>.hero-profile{order:0}.hero-dialog-editor>.inspector-section:nth-child(4){order:1}.hero-dialog-editor>.hero-draft-inspector{order:2}.hero-dialog-editor>.inspector-section:nth-child(7){order:3}.hero-dialog-editor>.inspector-section:nth-child(5){order:4}.hero-dialog-editor>.inspector-section:nth-child(6){order:5}.hero-dialog-footer{align-items:flex-start}.hero-dialog-footer>span{max-width:190px}}
+@media(max-width:900px){.hero-dialog-editor{display:flex;flex-direction:column}.hero-dialog-editor>.hero-level-card,.hero-dialog-editor>.inspector-section{width:100%}.hero-dialog-editor>.hero-level-card{order:0}.hero-dialog-editor>.inspector-section:nth-child(4){order:1}.hero-dialog-editor>.hero-draft-inspector{order:2}.hero-dialog-editor>.inspector-section:nth-child(7){order:3}.hero-dialog-editor>.inspector-section:nth-child(5){order:4}.hero-dialog-editor>.inspector-section:nth-child(6){order:5}.hero-dialog-footer{align-items:flex-start}.hero-dialog-footer>span{max-width:190px}}
 @media(max-width:560px){.hero-dialog-backdrop{padding:6px}.hero-detail-dialog{width:calc(100vw - 12px);height:calc(100vh - 12px);max-height:calc(100vh - 12px)}.hero-dialog-heading{gap:9px}.hero-dialog-identity .portrait{width:44px;height:48px}.hero-dialog-titles h2{font-size:16px}.hero-dialog-titles p{font-size:9px}.hero-dialog-header-actions .badge.demo{display:none}.hero-dialog-footer{padding:10px;flex-direction:column}.hero-dialog-footer>div{width:100%;justify-content:flex-start}.hero-dialog-scroll{padding:10px}.hero-dialog-editor .gear-slot-grid,.hero-dialog-editor .item-stat-list{grid-template-columns:1fr}}
 /* Independent summary and equipment stacks; avoid grid row stretching */
 .hero-dialog-editor{grid-template-areas:none;align-items:start}
 .hero-dialog-column{display:flex;flex-direction:column;gap:12px;min-width:0}
 .hero-dialog-column>.inspector-section{padding:16px 17px;border:1px solid #33475a;border-radius:9px;background:#192635;min-width:0}
 .hero-dialog-column>.hero-draft-inspector{background:linear-gradient(140deg,#1f353b,#1b2936)}
-.hero-dialog-column>.hero-profile{text-align:left;display:grid;grid-template-columns:80px 1fr;column-gap:13px;align-content:center;padding:17px;background:#192b3b;border:1px solid #354e61;border-radius:9px}
-.hero-dialog-column>.hero-profile .portrait{grid-column:1;grid-row:1/span 3}
-.hero-dialog-column>.hero-profile h2{grid-column:2;grid-row:1;font-size:18px;margin:4px 0 4px}
-.hero-dialog-column>.hero-profile .muted{grid-column:2;grid-row:2}
-.hero-dialog-column>.hero-profile .hero-stars{grid-column:2;grid-row:3;margin-top:5px}
 @media(max-width:900px){.hero-dialog-editor{display:flex;flex-direction:column}.hero-dialog-column{width:100%}}
+
+/* Single hero identity in fixed header; editable level is first body card (DESIGN §22). */
+.hero-dialog-subline{display:flex;align-items:center;flex-wrap:wrap;column-gap:12px;row-gap:3px}
+.hero-dialog-stars{color:#efc87d;letter-spacing:2px;font-size:14px;font-weight:750;white-space:nowrap}
+.hero-dialog-column>.hero-level-card{padding:17px 19px;background:linear-gradient(140deg,#19313d,#1c2c3a);border-color:#3a6b72}
+.hero-dialog-column>.hero-level-card .section-head{margin-bottom:14px}
+.hero-dialog-column>.hero-level-card .field-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.hero-dialog-column>.hero-level-card .field-label span{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;color:#8ce2ce}
+.hero-dialog-column>.hero-level-card #hero-level{width:100%;accent-color:#65cebd;cursor:pointer}
+.hero-dialog-column>.hero-level-card .range-labels{margin-top:8px}
+@media(max-width:560px){.hero-dialog-subline{display:block}.hero-dialog-stars{font-size:12px}.hero-dialog-column>.hero-level-card{padding:13px}}

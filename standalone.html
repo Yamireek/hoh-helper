@@ -237,13 +237,8 @@
 .hero-dialog-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px;scrollbar-width:thin;scrollbar-color:#49667a #121e2c}
 .hero-dialog-scroll::-webkit-scrollbar{width:8px;height:8px}
 .hero-dialog-scroll::-webkit-scrollbar-thumb{background:#49667a;border-radius:8px;border:2px solid #152233}
-.hero-dialog-editor{display:grid;grid-template-columns:minmax(280px,.86fr) minmax(0,1.42fr);grid-template-areas:'profile gear' 'attributes gear' 'changes gear' 'cost relic';align-content:start;align-items:start;gap:12px 15px}
+.hero-dialog-editor{display:grid;grid-template-columns:minmax(280px,.86fr) minmax(0,1.42fr);grid-template-areas:'level gear' 'attributes gear' 'changes gear' 'cost relic';align-content:start;align-items:start;gap:12px 15px}
 .hero-dialog-editor>.inspector-heading,.hero-dialog-editor>.inspector-actions{display:none}
-.hero-dialog-editor>.hero-profile{grid-area:profile;text-align:left;display:grid;grid-template-columns:80px 1fr;column-gap:13px;align-content:center;padding:17px;background:#192b3b;border:1px solid #354e61;border-radius:9px}
-.hero-dialog-editor>.hero-profile .portrait{grid-column:1;grid-row:1/span 3}
-.hero-dialog-editor>.hero-profile h2{grid-column:2;grid-row:1;font-size:18px;margin:4px 0 4px}
-.hero-dialog-editor>.hero-profile .muted{grid-column:2;grid-row:2}
-.hero-dialog-editor>.hero-profile .hero-stars{grid-column:2;grid-row:3;margin-top:5px}
 .hero-dialog-editor>.inspector-section{padding:16px 17px;border:1px solid #33475a;border-radius:9px;background:#192635;min-width:0}
 .hero-dialog-editor>.hero-draft-inspector{grid-area:changes;background:linear-gradient(140deg,#1f353b,#1b2936)}
 .hero-dialog-editor>.inspector-section:nth-child(4){grid-area:attributes}
@@ -261,19 +256,25 @@
 .hero-dialog-footer .btn{padding:10px 14px}
 #hero-modal-root[inert]{pointer-events:none}
 @media(max-width:1000px){.hero-detail-dialog{width:calc(100vw - 26px);height:calc(100vh - 32px);max-height:calc(100vh - 32px)}.hero-dialog-editor{grid-template-columns:minmax(235px, .83fr) minmax(0,1.17fr)}.hero-dialog-heading{padding:12px 16px}.hero-dialog-scroll{padding:13px}}
-@media(max-width:900px){.hero-dialog-editor{display:flex;flex-direction:column}.hero-dialog-editor>.hero-profile,.hero-dialog-editor>.inspector-section{width:100%}.hero-dialog-editor>.hero-profile{order:0}.hero-dialog-editor>.inspector-section:nth-child(4){order:1}.hero-dialog-editor>.hero-draft-inspector{order:2}.hero-dialog-editor>.inspector-section:nth-child(7){order:3}.hero-dialog-editor>.inspector-section:nth-child(5){order:4}.hero-dialog-editor>.inspector-section:nth-child(6){order:5}.hero-dialog-footer{align-items:flex-start}.hero-dialog-footer>span{max-width:190px}}
+@media(max-width:900px){.hero-dialog-editor{display:flex;flex-direction:column}.hero-dialog-editor>.hero-level-card,.hero-dialog-editor>.inspector-section{width:100%}.hero-dialog-editor>.hero-level-card{order:0}.hero-dialog-editor>.inspector-section:nth-child(4){order:1}.hero-dialog-editor>.hero-draft-inspector{order:2}.hero-dialog-editor>.inspector-section:nth-child(7){order:3}.hero-dialog-editor>.inspector-section:nth-child(5){order:4}.hero-dialog-editor>.inspector-section:nth-child(6){order:5}.hero-dialog-footer{align-items:flex-start}.hero-dialog-footer>span{max-width:190px}}
 @media(max-width:560px){.hero-dialog-backdrop{padding:6px}.hero-detail-dialog{width:calc(100vw - 12px);height:calc(100vh - 12px);max-height:calc(100vh - 12px)}.hero-dialog-heading{gap:9px}.hero-dialog-identity .portrait{width:44px;height:48px}.hero-dialog-titles h2{font-size:16px}.hero-dialog-titles p{font-size:9px}.hero-dialog-header-actions .badge.demo{display:none}.hero-dialog-footer{padding:10px;flex-direction:column}.hero-dialog-footer>div{width:100%;justify-content:flex-start}.hero-dialog-scroll{padding:10px}.hero-dialog-editor .gear-slot-grid,.hero-dialog-editor .item-stat-list{grid-template-columns:1fr}}
 /* Independent summary and equipment stacks; avoid grid row stretching */
 .hero-dialog-editor{grid-template-areas:none;align-items:start}
 .hero-dialog-column{display:flex;flex-direction:column;gap:12px;min-width:0}
 .hero-dialog-column>.inspector-section{padding:16px 17px;border:1px solid #33475a;border-radius:9px;background:#192635;min-width:0}
 .hero-dialog-column>.hero-draft-inspector{background:linear-gradient(140deg,#1f353b,#1b2936)}
-.hero-dialog-column>.hero-profile{text-align:left;display:grid;grid-template-columns:80px 1fr;column-gap:13px;align-content:center;padding:17px;background:#192b3b;border:1px solid #354e61;border-radius:9px}
-.hero-dialog-column>.hero-profile .portrait{grid-column:1;grid-row:1/span 3}
-.hero-dialog-column>.hero-profile h2{grid-column:2;grid-row:1;font-size:18px;margin:4px 0 4px}
-.hero-dialog-column>.hero-profile .muted{grid-column:2;grid-row:2}
-.hero-dialog-column>.hero-profile .hero-stars{grid-column:2;grid-row:3;margin-top:5px}
 @media(max-width:900px){.hero-dialog-editor{display:flex;flex-direction:column}.hero-dialog-column{width:100%}}
+
+/* Single hero identity in fixed header; editable level is first body card (DESIGN §22). */
+.hero-dialog-subline{display:flex;align-items:center;flex-wrap:wrap;column-gap:12px;row-gap:3px}
+.hero-dialog-stars{color:#efc87d;letter-spacing:2px;font-size:14px;font-weight:750;white-space:nowrap}
+.hero-dialog-column>.hero-level-card{padding:17px 19px;background:linear-gradient(140deg,#19313d,#1c2c3a);border-color:#3a6b72}
+.hero-dialog-column>.hero-level-card .section-head{margin-bottom:14px}
+.hero-dialog-column>.hero-level-card .field-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.hero-dialog-column>.hero-level-card .field-label span{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;color:#8ce2ce}
+.hero-dialog-column>.hero-level-card #hero-level{width:100%;accent-color:#65cebd;cursor:pointer}
+.hero-dialog-column>.hero-level-card .range-labels{margin-top:8px}
+@media(max-width:560px){.hero-dialog-subline{display:block}.hero-dialog-stars{font-size:12px}.hero-dialog-column>.hero-level-card{padding:13px}}
 </style>
 </head>
 <body>
@@ -618,14 +619,14 @@ function heroInspector(){
   const selectedId=edited.equipmentSlots[selectedSlot.id];
     const activeSets=setProgress(hero.id);
   return `<div class="inspector-heading"><span>HERO DETAILS · FIVE-SLOT LOADOUT</span><button class="icon-button" title="Reset this hero" data-action="resetHero">↺</button></div>
-  <div class="hero-profile">${portrait(hero,'giant')}<h2>${esc(hero.name)}</h2><div class="muted">${esc(hero.faction)} · ${esc(hero.role)}</div><div class="hero-stars">${'★'.repeat(hero.stars)}</div></div>
+  <div class="inspector-section hero-level-card"><div class="section-head"><b>Hero level</b>${badge('Local draft','demo')}</div><label class="field-label" for="hero-level">Planned level <span>${level} / ${hero.max}</span></label><input id="hero-level" type="range" min="${hero.level}" max="${hero.max}" step="1" value="${level}" data-hero-id="${hero.id}"/><div class="range-labels"><span>Snapshot ${hero.level}</span><span>Maximum ${hero.max}</span></div></div>
   <div class="inspector-section hero-draft-inspector"><div class="section-head"><b>Changes from snapshot</b>${heroDiff(hero.id).length?badge(`${heroDiff(hero.id).length} changes`,'warning'):badge('Unchanged','neutral')}</div>${heroDiff(hero.id).length?`<div class="inspector-diff-stack">${heroDiff(hero.id).map(heroDiffLine).join('')}</div>`:'<p class="hero-diff-empty">No changes in current draft</p>'}<p class="hero-diff-hint">Hypothetical edits only · nothing is changed in the game.</p></div>
   <div class="inspector-section"><div class="section-head"><b>Base attributes</b>${badge(`Lv ${level}`)}</div><div class="attribute-grid"><div><small>POWER (MOCK)</small><strong>${fmt(hero.power+(level-hero.level)*175)}</strong></div><div><small>ATTACK</small><strong>${fmt(hero.attack)}</strong></div><div><small>HEALTH</small><strong>${fmt(hero.health)}</strong></div><div><small>MAX LEVEL</small><strong>${hero.max}</strong></div></div></div>
   <div class="inspector-section"><div class="section-head"><b>Equipment · ${Object.values(edited.equipmentSlots).filter(Boolean).length}/5 slots</b>${badge('Local draft','demo')}</div><div class="gear-slot-grid">${slots}</div>
   ${activeSets.map(set=>`<div class="set-inline ${set.count>=set.required?'active':''}"><b>${esc(set.name)} ${set.count}/${set.required}</b><span>${set.bonuses.map(x=>`${esc(x.label)} +${x.value}%`).join(', ')} ${set.count>=set.required?'active':'inactive'}</span></div>`).join('')}
   <div class="slot-assignment-head"><div><div class="field-label">${esc(selectedSlot.label)} assignment</div><div class="assignment-summary">${selectedId?esc(eq(selectedId)?.name):'No equipment assigned'}</div></div><button type="button" class="btn primary picker-launch" data-action="openEquipmentPicker">${selectedId?'Change equipment':'Equip item'} <span aria-hidden="true">▦</span></button></div>
   ${selectedId?itemDetail(selectedId):'<div class="empty-note">Select an item to see its individual stats and set bonus.</div>'}
-  </div><div class="inspector-section"><div class="section-head"><b>Hero and relic draft</b></div><label class="field-label" for="hero-level">Hero level <span>${level} / ${hero.max}</span></label><input id="hero-level" type="range" min="${hero.level}" max="${hero.max}" step="1" value="${level}" data-hero-id="${hero.id}"/><div class="range-labels"><span>Current ${hero.level}</span><span>Cap ${hero.max}</span></div><div class="relic-assignment"><div class="slot-assignment-head"><div><div class="field-label">Equipped relic</div><div class="assignment-summary">${esc(rel(edited.relic)?.name||'Empty relic slot')}</div></div><button type="button" class="btn primary picker-launch" data-action="openRelicPicker">${edited.relic?'Change relic':'Equip relic'} <span aria-hidden="true">◇</span></button></div>${edited.relic?`<div class="relic-assigned-card"><span class="relic-assigned-icon">${esc(rel(edited.relic)?.icon||'◇')}</span><div><strong>${esc(rel(edited.relic)?.name||'Unknown relic')}</strong><small>${esc(rel(edited.relic)?.rarity||'')} · ${esc(rel(edited.relic)?.type||'')} · Lv ${rel(edited.relic)?.level||0}</small><span>${esc(rel(edited.relic)?.effect||'')}</span></div></div>`:'<div class="relic-assigned-empty">No relic equipped in the current draft.</div>'}</div></div>
+  </div><div class="inspector-section"><div class="section-head"><b>Relic</b></div><div class="relic-assignment"><div class="slot-assignment-head"><div><div class="field-label">Equipped relic</div><div class="assignment-summary">${esc(rel(edited.relic)?.name||'Empty relic slot')}</div></div><button type="button" class="btn primary picker-launch" data-action="openRelicPicker">${edited.relic?'Change relic':'Equip relic'} <span aria-hidden="true">◇</span></button></div>${edited.relic?`<div class="relic-assigned-card"><span class="relic-assigned-icon">${esc(rel(edited.relic)?.icon||'◇')}</span><div><strong>${esc(rel(edited.relic)?.name||'Unknown relic')}</strong><small>${esc(rel(edited.relic)?.rarity||'')} · ${esc(rel(edited.relic)?.type||'')} · Lv ${rel(edited.relic)?.level||0}</small><span>${esc(rel(edited.relic)?.effect||'')}</span></div></div>`:'<div class="relic-assigned-empty">No relic equipped in the current draft.</div>'}</div></div>
   <div class="inspector-section costs-section"><div class="section-head"><b>Incremental hero cost</b></div><div class="chip-grid">${costChips(cost)}</div><div class="estimate-line"><span>Whole draft farm shortfall</span><strong>${farmDays(allCosts()).toFixed(1)} days</strong></div><p class="muted hint">Gear swaps cost 0 in this mock; unique item upgrades are included in the whole plan.</p></div>
   <div class="inspector-actions">${btn('Review combined plan','goPlanner','primary')}${btn('Discard this hero changes','resetHero')}</div>`;
 }
@@ -708,7 +709,7 @@ function heroDialogMarkup(){
   const changes=heroDiff(hero.id);
   return `<div class="modal-backdrop hero-dialog-backdrop" data-hero-backdrop><section class="hero-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="hero-dialog-title" aria-describedby="hero-dialog-subtitle" tabindex="-1">
       <header class="hero-dialog-heading">
-        <div class="hero-dialog-identity">${portrait(hero,'large')}<div class="hero-dialog-titles"><span class="section-kicker">HERO PROFILE · LOCAL DRAFT</span><h2 id="hero-dialog-title">${esc(hero.name)}</h2><p id="hero-dialog-subtitle">${esc(hero.faction)} · ${esc(hero.role)} · Level ${currentHero(hero.id).level}/${hero.max} · Mock data</p></div></div>
+        <div class="hero-dialog-identity">${portrait(hero,'large')}<div class="hero-dialog-titles"><span class="section-kicker">HERO PROFILE · LOCAL DRAFT</span><h2 id="hero-dialog-title">${esc(hero.name)}</h2><div class="hero-dialog-subline"><span class="hero-dialog-stars" aria-label="${hero.stars} stars">${'★'.repeat(hero.stars)}</span><p id="hero-dialog-subtitle">${esc(hero.faction)} · ${esc(hero.role)} · Level ${currentHero(hero.id).level}/${hero.max} · Mock data</p></div></div></div>
         <div class="hero-dialog-header-actions">${badge('MOCK DATA','demo')}${changes.length?badge(`${changes.length} changes · EDITED`,'warning'):badge('Unchanged','success')}<button type="button" class="hero-dialog-close" data-action="closeHeroDialog" aria-label="Close hero details">×</button></div>
       </header>
       <div class="hero-dialog-scroll" tabindex="0" aria-label="Hero details and equipment"><div class="hero-dialog-editor">${heroInspector()}</div></div>
@@ -727,7 +728,7 @@ function showHeroDialog(scroll=0){
   root.innerHTML=state.heroDialogOpen&&state.view==='heroes'?heroDialogMarkup():'';
   const editor=root.querySelector('.hero-dialog-editor');
   if(editor){
-    // Build two independent vertical stacks from the canonical heroInspector sections.
+    // Build independent level/summary and equipment stacks from canonical heroInspector sections.
     // This avoids forced empty rows beneath the shorter left-hand summary cards.
     const blocks=[...editor.children];
     if(blocks.length===8){
