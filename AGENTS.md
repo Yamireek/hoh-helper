@@ -25,7 +25,7 @@ This ordering is mandatory for agents and human contributors alike: **DESIGN →
 ## Hard UI rules
 
 1. Entire window fills `100vw` and `100vh`. No browser page scrolling; scroll per workspace table, panel or inspector.
-2. Desktop-first dense tables; topbar, sidebar, title area, bottom statusbar; detail panels instead of page navigation for table selection.
+2. Desktop-first dense tables; topbar, sidebar, title area, bottom statusbar; full-width Heroes roster with an explicit Open details button and large editor dialog; Equipment/Relics keep right-side inspectors.
 3. Share canonical components/semantics across Heroes, Equipment, Relics, Resources, Battles, Arena and Planner. Every hero has five equipment slots; each unique item instance has an array of independent stats, level, rarity, and set affiliation. The UI must show ALL stat lines and recompute set activation on assignment changes.
 4. Use a single upgrade-draft state feeding incremental hero costs, combined resource budget and additional farming days.
 5. Draft and saved plans must never change real game state. This extension is read-only.
