@@ -348,3 +348,31 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 4. The assigned heroes section lists all draft users and **Open hero** navigates to the correct hero without changing that hero's relic or draft.
 5. No outer-document overflow at 1440×900 or 1920×1080. Tables, side panels and narrow screens scroll internally; at compact widths the inspector stacks below the table as already specified for Equipment.
 6. Equipment view, Heroes relic picker, planner costs and saved plans continue to pass `npm run check`, `npm run test`, `npm run build`.
+
+## 20. Hero roster opens full-size detail dialog (2026-11-11)
+
+**Supersedes previous Heroes side-inspector requirements.** The Heroes roster occupies the full workspace width and never reserves a narrow side inspector. Equipment and Relics navigation views retain their side inspectors.
+
+### Roster and entry points
+- Preserve searchable, sortable roster, Changed only filter/count, EDITED badges and complete before → after summaries.
+- Add an explicit, keyboard accessible **Open details** button in a dedicated Details column for each hero. Clicking a row selects/highlights without unexpectedly opening a dialog; Open details opens the correct hero regardless of row selection.
+- Heroes reached from Overview portraits, Equipment owning-hero links, and Relics user links must open the same hero dialog after switching to Heroes. Retain table filter/search after dialog close.
+
+### Hero dialog visual layout
+- Dark centered desktop dialog, up to **1160px** wide and approximately **90vh** tall, fixed header and footer, a single internally scrollable body with thin styled scrollbars; no outer-document scroll.
+- Header identifies portrait, name, faction, role, mock-data status, and current **Edited / Unchanged** change count. Prominent Close; role dialog, accessible title, aria-modal, focus trapping, Escape/backdrop close, and focus restored to the row's Open details button.
+- Spacious responsive two-column body: LEFT: base attributes, all before → after draft changes, incremental hero cost and whole-plan farming days. RIGHT: five equipment slots, individual item stats and set bonuses, selected slot's equipment picker launcher, planned hero-level control, relic preview and relic-picker launcher.
+- At viewports ≤900px columns stack and remain usable with internal scrolling, without horizontal clipping.
+- Persistent footer: Review combined plan (navigates, closing hero dialog), Discard this hero changes, and Close. All changes refresh modal, roster, costs and Edited badge without closing the hero dialog, including after reset when Changed only would hide that hero.
+
+### Nested pickers and data continuity
+- Existing searchable equipment/relic picker dialogs open above hero dialog and make the parent inert. Closing a picker with Escape, Cancel or backdrop returns to the same hero dialog/scroll position without changes. Choosing or unequipping an item updates both dialog and roster without leaving the hero editor and returns focus to the corresponding picker launcher.
+- Preserve unique equipment transfer rules, relic-type mock semantics, saved-plan format and local-only read-only behavior. Closing the hero modal never discards the draft. Leaving Heroes to Planner or other workspace closes it. Save plans remain accessible after closing.
+
+### Acceptance
+1. Full-width Heroes table with per-row Open details buttons; no inline Heroes inspector.
+2. Correct hero on every entry path; changed-only filter, diff summaries and actual draft state agree.
+3. Level, item upgrades, equipment transfers, relic swaps and hero reset recompute edit badges/costs without dismissing the editor.
+4. Nested pickers preserve their existing search, filtering, focus and Escape behavior; no backdrop click-through; parent remains open.
+5. Verify at 1440×900, 1920×1080 and narrow viewport without page overflow.
+6. Run check, test, build, add dialog-specific automated regression tests.
