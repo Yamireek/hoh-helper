@@ -281,3 +281,34 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 3. Leveling a currently equipped item marks its current hero as changed even if no hero fields or assignments changed. Moving the upgraded item updates which hero shows the item-level diff. Unassigned item upgrades do not mark a hero.
 4. Toggle the filter with zero and several edits, combine with text search, load a saved plan, reset individual/global changes, and confirm the table, inspector, counts, and filter stay consistent.
 5. Validate the unchanged 100vw × 100vh shell and the readable changes column at 1440×900 and 1920×1080; the table may scroll **inside its pane**, while the overall page must not overflow.
+
+## 18. Relic card-picker dialog — matching equipment selection (2026-11-11)
+
+**Status: mandatory.** Before modifying the UI, specify relic selection here. The native `#hero-relic` `<select>` in the Heroes inspector must be removed. Relic selection must use the same dark, centered, fixed-shell dialog language and subtle scrollbars as the equipment picker defined in §16.
+
+### 18.1 Inspector entry point and current assignment
+
+- Under **Hero and relic draft**, retain the hero-level control, then show the relic's current name (or **Empty relic slot**) and a concise card-like preview of its icon, rarity, type, level and complete effect text. Mark differences from the imported snapshot using the existing roster/inspector diff system from §17.
+- Add a conspicuous **Change relic** button (or **Equip relic** if empty), matching the equipment picker's action button. Clicking it opens the relic picker for the selected hero. No native relic dropdown is permitted in this inspector.
+- Relic choices are *hypothetical and local*. Choosing or removing a relic must update the inspector, roster relic column, changed badges/`Changed only` filter, planner resource budget and local saved-plan state immediately.
+
+### 18.2 Modal composition and interactions
+
+- Open a centered, app-styled dialog with the same sizing, layered backdrop, visible fixed header and footer, independent scrollable card grid, and keyboard focus/escape/restore rules as §16. Title: **Choose relic**; subtitle identifies the hero and mock-data nature. Search is focused on open.
+- Search by relic name, effect, type, rarity, and current hero users. Filters: **Type**, **Rarity**, **Assignment** (`All`, `Equipped by this hero`, `Equipped by others`, `Unassigned`) and **Sort** (`Highest level`, `Name A–Z`, `Rarity`). Counts show filtered matches and total relic types. A no-results state has a **Clear filters** control.
+- Show responsive 2–3-column **relic cards** with icon, name, rarity, type, level, **full effect**, mock owned copies, and currently equipped hero names / a clear unassigned status. Make the selected hero's current relic card prominent with **Equipped**. Card click selects the relic and closes the dialog; footer **Unequip relic** clears the hero's relic (disabled if already empty), **Cancel** closes without changes.
+- Close by Escape, Close/Cancel, or backdrop click; not by clicking inside the dialog. Trap Tab focus while open, restore focus to the launcher on Cancel and after a selection, and make the rest of the application inert. Retain the styled scrollbars and **100vw × 100vh, no root scroll** behavior for 1440×900, 1920×1080, and compact widths.
+
+### 18.3 Fixture ownership and production contract
+
+- The current mock `relics[]` fixtures are **relic types**, not unique equipped item instances. Several baseline heroes legitimately reference the same relic ID; `charges` is an illustrative fixture field, not a verified per-hero inventory limit. The prototype may show multiple names in **Equipped by** and must **not** silently unequip other heroes or claim legal copy availability when choosing a type. Do not mislabel these types as unique instances.
+- Real-game import must replace this ambiguity with verified instance IDs, owned counts and equip restrictions. Only then may the production optimizer enforce exclusivity or copy limits. Keep planner relic-change cost estimation explicitly mock and unchanged by the dialog itself.
+- Preserve existing `changes[heroId].relic` and saved plan format; this is a presentation/selection upgrade, not a data migration.
+
+### 18.4 Acceptance checks
+
+1. Heroes inspector has **no native relic `<select>`**; a button opens the dialog and a current-relic preview remains visible.
+2. Cards show complete effects, icon/type/rarity/level, copies and assigned users; search, filters, sorting, zero-results and clear filters work and remain inside the modal.
+3. Selecting a relic, unequipping it, and cancelling behave correctly. Changing a relic updates the original → draft difference and `Changed only` roster; reverting to baseline removes the flag. Saved plans preserve the chosen relic.
+4. All modal entry/exit pathways maintain keyboard focus and do not trigger background interactions; the dialog and application do not cause document overflow at 1440×900 or 1920×1080.
+5. The existing equipment picker and equipment-transfer semantics remain unchanged. Verify `npm run check`, `npm run test`, `npm run build` after implementation.
