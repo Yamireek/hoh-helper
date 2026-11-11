@@ -58,12 +58,12 @@ function heroDiff(id){
   if(current.relic!==baseline.relic)result.push({kind:'RELIC',label:'Relic',before:rel(baseline.relic)?.name||'None',after:rel(current.relic)?.name||'None'});
   for(const slot of equipmentSlots){
     const before=baseline.equipmentSlots[slot.id],after=current.equipmentSlots[slot.id];
-    if(before!==after)result.push({kind:'SLOT',label:slot.label,before:eq(before)?.name||'Empty',after:eq(after)?.name||'Empty'});
+    if(before!==after)result.push({kind:'SLOT',slotId:slot.id,label:slot.label,before:eq(before)?.name||'Empty',after:eq(after)?.name||'Empty'});
   }
   const equipped=new Set(Object.values(current.equipmentSlots).filter(Boolean));
   for(const id of equipped){
     const item=eq(id);
-    if(item&&itemLevel(id)!==item.level)result.push({kind:'ITEM',label:item.name,before:`Lv ${item.level}`,after:`Lv ${itemLevel(id)}`});
+    if(item&&itemLevel(id)!==item.level)result.push({kind:'ITEM',itemId:id,label:item.name,before:`Lv ${item.level}`,after:`Lv ${itemLevel(id)}`});
   }
   return result;
 }
@@ -124,6 +124,34 @@ function changeItemLevel(itemId,level){
   if(target===item.level)delete state.itemLevels[itemId];else state.itemLevels[itemId]=target;
   saveDraft();render();
 }
+// Revert exactly one independently identified draft change; preserve all unrelated edits.
+function revertHeroChange(heroId,kind,key=''){
+  const baseline=h(heroId);
+  if(!baseline||!state.heroDialogOpen||state.selectedHero!==heroId)return false;
+  const change=heroDiff(heroId).find(c=>c.kind===kind&&(c.slotId||c.itemId||'')===key);
+  if(!change)return false;
+  if(kind==='LEVEL'||kind==='RELIC'){
+    const field=kind.toLowerCase();
+    if(state.changes[heroId]){
+      delete state.changes[heroId][field];
+      if(Object.keys(state.changes[heroId]).length===0)delete state.changes[heroId];
+    }
+  }else if(kind==='SLOT'){
+    const current=fullLoadout();
+    const original=baseline.equipmentSlots[key]||null;
+    if(original){
+      const owner=equipmentOwner(original,current);
+      if(owner&&(owner.heroId!==heroId||owner.slot!==key))current[owner.heroId][owner.slot]=null;
+    }
+    current[heroId][key]=original;
+    storeLoadout(current);
+    if(state.activeSlot===key)state.selectedItem=original;
+  }else if(kind==='ITEM'){
+    delete state.itemLevels[key];
+  }else return false;
+  saveDraft();render();
+  return true;
+}
 const equipmentCost=()=>upgradedItems().reduce((out,item)=>mergeCost(out,{ore:(itemLevel(item.id)-item.level)*10,scrolls:(itemLevel(item.id)-item.level)*3}),{});
 const gearChangesText=id=>slotsChanged(id).map(slot=>{
   const before=eq(h(id).equipmentSlots[slot.id]),after=eq(heroGear(id)[slot.id]);
@@ -165,6 +193,11 @@ function overview(){const needs=battles.filter(x=>x.stars<3);const lowest=[...ne
   <div class="overview-columns bottom"><section class="panel compact"><div class="panel-heading"><div><span class="section-kicker">ROSTER</span><h2>Highest power heroes</h2></div>${btn('View roster','goHeroes')}</div><div class="portrait-strip">${[...heroes].sort((a,b)=>b.power-a.power).slice(0,8).map(hero=>`<button class="portrait-tile" data-hero="${hero.id}">${portrait(hero,'large')}<strong>${hero.name.split(' ')[0]}</strong><small>Lv ${hero.level}</small></button>`).join('')}</div></section><section class="panel compact"><div class="panel-heading"><div><span class="section-kicker">UPGRADE FINANCES</span><h2>Current draft cost</h2></div>${btn('Open planner','goPlanner')}</div><div class="overview-cost">${costChips(allCosts())}</div><p class="muted hint">Resource balances and income are mock values. The planner deducts owned stock before calculating farming days.</p></section></div></div>`}
 const visibleHeroes=()=>sortedFiltered(state.heroChangedOnly?changedHeroes():heroes,state.search,x=>`${x.name} ${x.faction} ${x.role} ${x.rarity}`);
 const heroDiffLine=change=>`<span class="hero-diff-line"><b class="hero-diff-type">${esc(change.kind==='SLOT'?change.label:change.kind==='ITEM'?`ITEM · ${change.label}`:change.label)}</b><span class="hero-diff-before">${esc(change.before)}</span><span class="hero-diff-arrow" aria-label="changes to">→</span><strong class="hero-diff-after">${esc(change.after)}</strong></span>`;
+const heroDiffRevertLine=(heroId,change)=>{
+  const stableKey=change.slotId||change.itemId||'';
+  const title=`Revert ${change.label} to ${change.before}`;
+  return `<div class="hero-diff-entry">${heroDiffLine(change)}<button type="button" class="hero-change-revert" data-revert-hero="${esc(heroId)}" data-revert-kind="${esc(change.kind)}" data-revert-key="${esc(stableKey)}" aria-label="${esc(title)}" title="${esc(title)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 10H4V5"/><path d="M4 10a8 8 0 1 1 2.8 6.1"/></svg></button></div>`;
+};
 function heroesView(){
   const list=visibleHeroes(),changedCount=changedHeroes().length;
   if(!state.heroDialogOpen&&list.length&&!list.some(hero=>hero.id===state.selectedHero)){state.selectedHero=list[0].id;state.activeSlot='weapon';}
@@ -193,7 +226,7 @@ function heroInspector(){
     const activeSets=setProgress(hero.id);
   return `<div class="inspector-heading"><span>HERO DETAILS · FIVE-SLOT LOADOUT</span><button class="icon-button" title="Reset this hero" data-action="resetHero">↺</button></div>
   <div class="inspector-section hero-level-card"><div class="section-head"><b>Hero level</b>${badge('Local draft','demo')}</div><label class="field-label" for="hero-level">Planned level <span>${level} / ${hero.max}</span></label><input id="hero-level" type="range" min="${hero.level}" max="${hero.max}" step="1" value="${level}" data-hero-id="${hero.id}"/><div class="range-labels"><span>Snapshot ${hero.level}</span><span>Maximum ${hero.max}</span></div></div>
-  <div class="inspector-section hero-draft-inspector"><div class="section-head"><b>Changes from snapshot</b>${heroDiff(hero.id).length?badge(`${heroDiff(hero.id).length} changes`,'warning'):badge('Unchanged','neutral')}</div>${heroDiff(hero.id).length?`<div class="inspector-diff-stack">${heroDiff(hero.id).map(heroDiffLine).join('')}</div>`:'<p class="hero-diff-empty">No changes in current draft</p>'}<p class="hero-diff-hint">Hypothetical edits only · nothing is changed in the game.</p></div>
+  <div class="inspector-section hero-draft-inspector"><div class="section-head"><b id="hero-changes-heading" tabindex="-1">Changes from snapshot</b>${heroDiff(hero.id).length?badge(`${heroDiff(hero.id).length} changes`,'warning'):badge('Unchanged','neutral')}</div>${heroDiff(hero.id).length?`<div class="inspector-diff-stack">${heroDiff(hero.id).map(change=>heroDiffRevertLine(hero.id,change)).join('')}</div>`:'<p class="hero-diff-empty">No changes in current draft</p>'}<p class="hero-diff-hint">Hypothetical edits only · nothing is changed in the game.</p></div>
   <div class="inspector-section"><div class="section-head"><b>Base attributes</b>${badge(`Lv ${level}`)}</div><div class="attribute-grid"><div><small>POWER (MOCK)</small><strong>${fmt(hero.power+(level-hero.level)*175)}</strong></div><div><small>ATTACK</small><strong>${fmt(hero.attack)}</strong></div><div><small>HEALTH</small><strong>${fmt(hero.health)}</strong></div><div><small>MAX LEVEL</small><strong>${hero.max}</strong></div></div></div>
   <div class="inspector-section"><div class="section-head"><b>Equipment · ${Object.values(edited.equipmentSlots).filter(Boolean).length}/5 slots</b>${badge('Local draft','demo')}</div><div class="gear-slot-grid">${slots}</div>
   ${activeSets.map(set=>`<div class="set-inline ${set.count>=set.required?'active':''}"><b>${esc(set.name)} ${set.count}/${set.required}</b><span>${set.bonuses.map(x=>`${esc(x.label)} +${x.value}%`).join(', ')} ${set.count>=set.required?'active':'inactive'}</span></div>`).join('')}
@@ -528,107 +561,4 @@ function openRelicPicker(launcher){
   renderRelicPickerCards();
   document.querySelector('#relic-picker-search')?.focus();
 }
-function closeRelicPicker(){
-  if(!relicPicker)return;
-  relicPicker=null;
-  document.querySelector('#modal-root').innerHTML='';
-  syncOverlayInert();
-  const restore=pickerLauncher?.isConnected?pickerLauncher:document.querySelector('[data-action="openRelicPicker"]');
-  pickerLauncher=null;
-  restore?.focus();
-}
-function chooseRelicPickerItem(itemId){
-  if(!relicPicker)return;
-  const {heroId}=relicPicker;
-  if(itemId!==null&&!relics.some(x=>x.id===itemId))return;
-  closeRelicPicker();
-  changeHero(heroId,'relic',itemId||'');
-  document.querySelector('[data-action="openRelicPicker"]')?.focus();
-}
-
-function savePlanModal(){const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" data-action="closeModal"><form id="save-form" class="modal" role="dialog" aria-modal="true" aria-label="Save plan"><div class="modal-head"><h2>Save upgrade plan</h2><button type="button" class="icon-button" data-action="closeModal">×</button></div><p>Your current changes will be saved locally in this browser, not applied to the game.</p><label class="field-label" for="plan-name">Plan name</label><input id="plan-name" name="name" required maxlength="60" value="Battle improvements ${new Date().toLocaleDateString('en-GB')}"/><div class="modal-actions"><button type="button" class="btn secondary" data-action="closeModal">Cancel</button><button type="submit" class="btn primary">Save locally</button></div></form></div>`;root.querySelector('#plan-name')?.focus()}
-function act(action){
-  if(action.startsWith('go')){goto(({goPlanner:'planner',goArena:'arena',goHeroes:'heroes',goBattles:'battles'})[action]);return}
-  if(action==='closeHeroDialog'){closeHeroDialog();return}
-  if(action==='showAllHeroes'){state.heroChangedOnly=false;state.search='';render();return}
-  if(action==='resetHero'){resetHeroDraft(state.selectedHero);toast('Hero draft reset');return;}
-  if(action==='resetChanges'){state.changes={};state.assignments={};state.itemLevels={};saveDraft();render();toast('Draft cleared');return}
-  if(action==='resetAll'){localStorage.removeItem(STORAGE);state.changes={};state.assignments={};state.itemLevels={};state.plans=[];render();toast('Demo reset');return}
-  if(action==='openEquipmentPicker'){openEquipmentPicker(document.querySelector('[data-action="openEquipmentPicker"]'));return}
-  if(action==='openRelicPicker'){openRelicPicker(document.querySelector('[data-action="openRelicPicker"]'));return}
-  if(action==='savePlan'){savePlanModal();return}
-  if(action==='closeModal'){document.querySelector('#modal-root').innerHTML='';return}
-  if(action==='applyBattle'){applyRecipe(state.selectedBattle);return}
-  if(action==='useFormation'){const o=opponents.find(x=>x.id===state.selectedOpponent);toast(`Selected ${squad(o.alternative).name} for ${o.name} (demo only)`);return}
-  if(action==='optimizeAll'){toast('Candidate formations already ranked in the mock arena table');return}
-}
-document.addEventListener('click',e=>{
-  if(relicPicker){
-    const card=e.target.closest('[data-pick-relic]');if(card){chooseRelicPickerItem(card.dataset.pickRelic);return}
-    if(e.target.closest('[data-relic-picker-unequip]')){chooseRelicPickerItem(null);return}
-    if(e.target.closest('[data-relic-picker-close]')||e.target.hasAttribute('data-relic-picker-backdrop')){closeRelicPicker();return}
-    if(e.target.closest('[data-relic-picker-clear]')){Object.assign(relicPicker,{search:'',type:'All',rarity:'All',assignment:'All',sort:'Highest level'});document.querySelector('#relic-picker-search').value='';for(const field of ['type','rarity','assignment','sort'])document.querySelector('#relic-picker-'+field).value=relicPicker[field];renderRelicPickerCards();document.querySelector('#relic-picker-search')?.focus();return}
-    return;
-  }
-  if(equipmentPicker){
-    const card=e.target.closest('[data-pick-item]');if(card){choosePickerItem(card.dataset.pickItem);return}
-    if(e.target.closest('[data-picker-unequip]')){choosePickerItem(null);return}
-    if(e.target.closest('[data-picker-close]')||(e.target.hasAttribute('data-picker-backdrop'))){closeEquipmentPicker();return}
-    if(e.target.closest('[data-picker-clear]')){Object.assign(equipmentPicker,{search:'',rarity:'All',set:'All',ownership:'All',sort:'Highest level'});document.querySelector('#picker-search').value='';for(const field of ['rarity','set','ownership','sort'])document.querySelector('#picker-'+field).value=equipmentPicker[field];renderPickerCards();document.querySelector('#picker-search')?.focus();return}
-    return; // Ignore all page interactions beneath a modal.
-  }
-  const heroBackdrop=e.target.closest('[data-hero-backdrop]');
-  if(heroBackdrop&&heroBackdrop===e.target){closeHeroDialog();return}
-  const openDetail=e.target.closest('[data-open-hero]');if(openDetail){openHeroDialog(openDetail.dataset.openHero);return}
-  const slot=e.target.closest('[data-select-slot]');if(slot){state.activeSlot=slot.dataset.selectSlot;state.selectedItem=heroGear(slot.dataset.forHero)[state.activeSlot];render();return}
-  const item=e.target.closest('[data-item]');if(item){state.selectedItem=item.dataset.item;render();return}
-  const relicRow=e.target.closest('[data-relic]');if(relicRow){state.selectedRelic=relicRow.dataset.relic;render();return}
-  const relicUser=e.target.closest('[data-relic-user]');if(relicUser){state.heroChangedOnly=false;openHeroDialog(relicUser.dataset.relicUser);return}
-  const resetItem=e.target.closest('[data-reset-item]');if(resetItem){delete state.itemLevels[resetItem.dataset.resetItem];saveDraft();render();return}
-  const nav=e.target.closest('[data-nav]');if(nav){goto(nav.dataset.nav);return}
-  const hero=e.target.closest('[data-hero]');if(hero){
-    if(state.view!=='heroes'){openHeroDialog(hero.dataset.hero);return}
-    state.selectedHero=hero.dataset.hero;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;render();return;
-  }
-  const battle=e.target.closest('[data-battle]');if(battle){state.selectedBattle=battle.dataset.battle;goto('battles');return}
-  const opp=e.target.closest('[data-opponent]');if(opp){state.selectedOpponent=opp.dataset.opponent;goto('arena');return}
-  const remove=e.target.closest('[data-reset-hero]');if(remove){resetHeroDraft(remove.dataset.resetHero);return}
-  const add=e.target.closest('[data-apply-recipe]');if(add){applyRecipe(add.dataset.applyRecipe);return}
-  const loadPlan=e.target.closest('[data-load-plan]');if(loadPlan){const plan=state.plans[Number(loadPlan.dataset.loadPlan)];state.changes=structuredClone(plan.changes||{});state.assignments=structuredClone(plan.assignments||{});state.itemLevels=structuredClone(plan.itemLevels||{});saveDraft();render();toast('Saved plan loaded');return}
-  const sort=e.target.closest('th[data-sort]');if(sort?.dataset.sort){const key=sort.dataset.sort;state.sortDir=state.sortKey===key?-state.sortDir:1;state.sortKey=key;render();return}
-  const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='closeModal'&&action.classList.contains('modal-backdrop')&&e.target!==action)return;act(action.dataset.action)}
-});
-document.addEventListener('input',e=>{
-  if(relicPicker&&e.target.id==='relic-picker-search'){relicPicker.search=e.target.value;renderRelicPickerCards();return}
-  if(equipmentPicker&&e.target.id==='picker-search'){equipmentPicker.search=e.target.value;renderPickerCards();return}
-  if(e.target.id==='global-search'){
-    const start=e.target.selectionStart;state.search=e.target.value;const view=document.querySelector('#view-content');
-    if(view){view.innerHTML=renderView();syncRecordCount();const input=document.querySelector('#global-search');input?.focus();input?.setSelectionRange(start,start)}return;
-  }
-  if(e.target.id==='hero-level'){const label=e.target.closest('.inspector-section')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${h(e.target.dataset.heroId)?.max||''}`;return}
-  if(e.target.id==='item-level'){const label=e.target.closest('.item-upgrade')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${eq(e.target.dataset.itemId)?.maxLevel||''}`;return}
-});
-document.addEventListener('change',e=>{
-  if(e.target.id==='hero-level'){changeHero(e.target.dataset.heroId,'level',e.target.value);return}
-  if(e.target.id==='item-level'){changeItemLevel(e.target.dataset.itemId,e.target.value);return}
-  if(relicPicker&&['relic-picker-type','relic-picker-rarity','relic-picker-assignment','relic-picker-sort'].includes(e.target.id)){relicPicker[e.target.id.replace('relic-picker-','')]=e.target.value;renderRelicPickerCards();return}
-  if(equipmentPicker&&['picker-rarity','picker-set','picker-ownership','picker-sort'].includes(e.target.id)){
-    equipmentPicker[e.target.id.replace('picker-','')]=e.target.value;renderPickerCards();return;
-  }
-  if(e.target.id==='hero-changed-only'){state.heroChangedOnly=e.target.checked;render();return}
-  if(e.target.id==='battle-filter'){state.battleFilter=e.target.value;render()}
-  if(e.target.id==='arena-mode'){state.arenaMode=e.target.value;render()}
-});
-document.addEventListener('keydown',e=>{
-  if(!equipmentPicker&&!relicPicker){
-    if(state.heroDialogOpen&&e.key==='Escape'){e.preventDefault();closeHeroDialog();return}
-    if(state.heroDialogOpen&&e.key==='Tab'){const dialog=document.querySelector('.hero-detail-dialog');if(dialog){focusInDialog(dialog,e);return}}
-    if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('[data-relic]')){e.preventDefault();state.selectedRelic=e.target.dataset.relic;render();document.querySelector('[data-relic=\"'+state.selectedRelic+'\"]')?.focus();}
-    return;
-  }
-  if(e.key==='Escape'){e.preventDefault();if(relicPicker)closeRelicPicker();else closeEquipmentPicker();return}
-  if(e.key!=='Tab')return;
-  const modal=document.querySelector('.equipment-picker');if(modal)focusInDialog(modal,e);
-});
-document.addEventListener('submit',e=>{if(e.target.id!=='save-form')return;e.preventDefault();const name=e.target.elements.name.value.trim();if(!name)return;state.plans.unshift({name,created:new Date().toLocaleDateString('en-GB'),count:Object.keys(state.changes).length+Object.keys(state.assignments).length+Object.keys(state.itemLevels).length,changes:structuredClone(state.changes),assignments:structuredClone(state.assignments),itemLevels:structuredClone(state.itemLevels)});state.plans=state.plans.slice(0,20);saveDraft();render();toast(`Saved plan: ${name}`)});
-render();
+function closeRelicPicker()

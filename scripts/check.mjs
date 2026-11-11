@@ -24,4 +24,7 @@ assert(!css.includes('.hero-roster-full .data-table th:last-child'),'Hero detail
 assert(doc.includes('## 22. Single hero identity and top-level editing'),'New hero dialog design contract missing');
 assert(code.includes('hero-level-card')&&code.includes('hero-dialog-stars'),'Hero stars and prominent level required');
 assert(!code.includes('class="hero-profile"'),'Redundant hero identity card forbidden');
+assert(doc.includes('## 23. Revert a single hero draft change'),'Revert design contract missing');
+assert(code.includes('heroDiffRevertLine')&&code.includes('revertHeroChange'),'Revert logic missing');
+assert(css.includes('.hero-change-revert'),'Revert style missing');
 console.log('Source and design checks: OK');

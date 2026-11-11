@@ -268,3 +268,12 @@
 .hero-dialog-column>.hero-level-card #hero-level{width:100%;accent-color:#65cebd;cursor:pointer}
 .hero-dialog-column>.hero-level-card .range-labels{margin-top:8px}
 @media(max-width:560px){.hero-dialog-subline{display:block}.hero-dialog-stars{font-size:12px}.hero-dialog-column>.hero-level-card{padding:13px}}
+
+/* Per-difference revert buttons: DESIGN.md §23 */
+.inspector-diff-stack .hero-diff-entry{display:flex;align-items:center;gap:9px;min-width:0;border:1px solid #3a5051;background:#14232b;border-radius:6px;padding:7px 8px 7px 10px}
+.inspector-diff-stack .hero-diff-entry .hero-diff-line{flex:1;min-width:0;border:0;padding:0;background:transparent;font-size:11px}
+.hero-change-revert{display:grid;place-items:center;flex:none;width:30px;height:30px;padding:0;border:1px solid #485c65;border-radius:6px;background:#20333e;color:#9dc2cb;cursor:pointer}
+.hero-change-revert:hover{background:#304952;color:#e5f9f7;border-color:#7ccbbb}
+.hero-change-revert:focus-visible{outline:2px solid #86e5d7;outline-offset:2px}
+.hero-change-revert svg{pointer-events:none}
+@media(max-width:560px){.inspector-diff-stack .hero-diff-entry{gap:6px;padding:7px}.inspector-diff-stack .hero-diff-entry .hero-diff-line{font-size:10px}}

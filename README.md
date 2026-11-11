@@ -64,3 +64,7 @@ See the source-of-truth contract in [docs/DESIGN.md](docs/DESIGN.md) and the man
 ### Single hero identity and top-level level editor
 
 The Heroes dialog renders the portrait, name, faction, role, stars and level once in its fixed header. The planned level slider is the first card in the dialog, immediately above attributes and draft changes; Relic is a separate right-column card. See `docs/DESIGN.md` §22.
+
+### Revert individual hero changes
+
+Each entry under Heroes → Open details → Changes from snapshot has a per-row curved-arrow revert button restoring only the identified change. Unique equipment transfers return the original item without duplication. See `docs/DESIGN.md` §23.
