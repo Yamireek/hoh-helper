@@ -284,6 +284,37 @@
 .hero-change-revert:focus-visible{outline:2px solid #86e5d7;outline-offset:2px}
 .hero-change-revert svg{pointer-events:none}
 @media(max-width:560px){.inspector-diff-stack .hero-diff-entry{gap:6px;padding:7px}.inspector-diff-stack .hero-diff-entry .hero-diff-line{font-size:10px}}
+
+/* Battle records replay — docs/DESIGN.md §25. No pinned final column. */
+.battle-records-view .data-table th.battle-replay-heading,.battle-records-view .data-table td.battle-replay-open{width:64px;min-width:64px;max-width:64px;text-align:center;padding-left:6px;padding-right:6px}
+.battle-replay-icon{width:30px;height:30px;display:inline-grid;place-items:center;border:1px solid #405267;border-radius:6px;background:#202e3d;color:#aac1d2;cursor:pointer;padding:0}
+.battle-replay-icon:hover{color:#e5fff6;background:#2d4857;border-color:#83cdbf}
+.battle-replay-icon:focus-visible,.replay-control-button:focus-visible{outline:2px solid #8ce4d3;outline-offset:2px}
+.battle-replay-icon svg{pointer-events:none}
+.battle-replay-backdrop{z-index:115;padding:13px;background:#03070ddd;backdrop-filter:blur(4px);overflow:hidden}
+.battle-replay-dialog{width:min(1180px,calc(100vw - 30px));height:min(92vh,940px);max-height:calc(100vh - 18px);max-width:100%;border:1px solid #426071;background:#111c29;border-radius:12px;color:#e4edf4;box-shadow:0 30px 95px #000b;display:flex;flex-direction:column;overflow:hidden;min-width:0;outline:0}
+.battle-replay-header{padding:14px 19px 13px;background:linear-gradient(110deg,#243d4c,#152537);border-bottom:1px solid #385064;display:flex;align-items:center;justify-content:space-between;gap:15px;min-width:0;flex-shrink:0}
+.battle-replay-heading{min-width:0}.battle-replay-heading h2{font-size:20px;line-height:1.2;margin:5px 0;font-weight:720;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.battle-replay-heading p{font-size:11px;color:#9eb5c6;margin:0;line-height:1.5}
+.battle-replay-header-actions{display:flex;align-items:center;gap:11px;flex-shrink:0}.replay-outcome-pair{display:flex;align-items:center;gap:5px}.replay-outcome-pair small{color:#9ab0be;font-size:9px;text-transform:uppercase}
+.battle-replay-scroll{overflow:auto;flex:1;min-height:0;scrollbar-color:#455e70 #132232;scrollbar-width:thin;padding:15px}.battle-replay-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,.86fr);gap:13px;min-width:0}.battle-replay-primary,.replay-analytics{min-width:0;display:flex;flex-direction:column;gap:12px}
+.replay-scene-panel,.replay-transport,.replay-events-panel,.replay-analytics{background:#172637;border:1px solid #2f4658;border-radius:9px;overflow:hidden}.replay-panel-heading{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;gap:10px;border-bottom:1px solid #334756;font-size:12px}.replay-panel-heading .muted{font-size:10px}.replay-analytics>.replay-panel-heading{padding:12px 13px}
+.replay-stage{height:355px;position:relative;background:radial-gradient(ellipse at 48% 55%,#2d5161 0,#18344a 50%,#111f30 100%);overflow:hidden}
+.replay-stage-grid{position:absolute;inset:0}.replay-stage-half{position:absolute;inset:0;width:50%;pointer-events:none}.replay-stage-friendly{background:linear-gradient(90deg,#277b7330,transparent)}.replay-stage-hostile{left:50%;background:linear-gradient(270deg,#9c4d5a30,transparent)}
+.replay-side-label{position:absolute;top:11px;font-size:9px;font-weight:760;letter-spacing:1.2px;z-index:2}.replay-side-label.friendly{left:15px;color:#8de7ce}.replay-side-label.hostile{right:14px;color:#f5a8a5}
+.replay-center-circle{position:absolute;width:25%;height:55%;border:1px solid #66839635;border-radius:50%;left:37.5%;top:22%;box-shadow:inset 0 0 35px #0b1b2d6b}.replay-center-line{position:absolute;left:50%;top:9%;bottom:9%;width:1px;background:linear-gradient(transparent,#7593a943,transparent)}
+.replay-trails{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.replay-trail{stroke-dasharray:2 1;filter:drop-shadow(0 0 3px currentColor);animation:replay-strike .35s ease-out both}@keyframes replay-strike{from{opacity:0;stroke-dashoffset:13}to{opacity:1;stroke-dashoffset:0}}
+.replay-unit{--tone:#83d6cb;position:absolute;width:78px;transform:translate(-50%,-50%);text-align:center;transition:left .12s linear,top .12s linear,filter .2s;z-index:3;pointer-events:none}.replay-unit.enemy{--tone:#f19d9c}.replay-unit.is-defeated{filter:grayscale(.9);opacity:.3}.replay-unit-bubble{width:43px;height:43px;margin:auto;border-radius:12px;display:grid;place-items:center;font-size:13px;font-weight:780;color:#f3f7fb;background:linear-gradient(135deg,#396b80,#1b3043);border:2px solid var(--tone);box-shadow:0 2px 10px #0008,0 0 10px #70cbbb21}.replay-unit.enemy .replay-unit-bubble{background:linear-gradient(140deg,#744051,#392838)}.replay-unit.is-attacking .replay-unit-bubble{box-shadow:0 0 0 6px #f0c5772c,0 0 20px #f5d69b70}.replay-unit.is-hit .replay-unit-bubble{border-color:#f5d2a5;filter:brightness(1.32)}
+.replay-unit-hp{height:5px;max-width:58px;background:#090f18;border:1px solid #526270;margin:4px auto 2px;border-radius:5px;overflow:hidden}.replay-unit-hp span{display:block;height:100%;background:var(--tone);transition:width .12s}.replay-unit-name{font-size:9px;text-shadow:0 1px 2px #09131b;line-height:1.15;color:#e0edf4;max-height:21px;overflow:hidden}
+.replay-transport{padding:13px;gap:9px}.replay-controls{display:flex;align-items:center;justify-content:center;gap:7px}.replay-control-button{min-width:34px;height:31px;border:1px solid #496274;border-radius:6px;background:#203447;color:#cadde9;font-size:17px}.replay-control-button:hover{background:#2c5362;border-color:#8ad4c4}.replay-play{min-width:94px;padding:0 11px;background:#275a5b;color:#d3fef0;font-size:11px;font-weight:750}.replay-speed-label{font-size:10px;color:#9cafbc;margin-left:auto;white-space:nowrap}.replay-speed-label select{margin-left:4px;height:30px;background:#112032;border:1px solid #3e5567;color:#d4e3ed;border-radius:5px;padding:0 5px}
+.replay-timeline-labels{display:flex;justify-content:space-between;align-items:baseline;color:#b6c9d8;font-size:11px}.replay-timeline-labels strong{color:#86dcca;font-variant-numeric:tabular-nums;font-size:16px}.replay-timeline-wrap{position:relative;padding:9px 1px 3px}.replay-event-track{position:absolute;left:7px;right:7px;top:1px;height:5px;pointer-events:none}.replay-event-marker{display:block;position:absolute;top:0;width:2px;height:6px;background:#d2b278;opacity:.77}.replay-event-marker.heal{background:#83dcc1}
+#replay-time{width:100%;margin:0;accent-color:#72d2bf;cursor:pointer;background:transparent;position:relative;z-index:1;--replay-progress:0%}
+.replay-event-feed{padding:6px 12px 11px;min-height:66px;display:flex;flex-direction:column;gap:3px}.replay-event{display:grid;grid-template-columns:40px minmax(0,1fr);gap:9px;padding:6px 0;border-bottom:1px solid #35475a69;font-size:10px;line-height:1.45;color:#afc5d4}.replay-event b{color:#e6f0f6;font-weight:650}.replay-event-time{color:#84cfbd;font-variant-numeric:tabular-nums}.replay-event strong{color:#ecbd86}.replay-event.heal strong{color:#7fe0bb}.replay-event em{font-style:normal;color:#f9a5a5}.replay-events-empty{font-size:11px;color:#849aac}
+#replay-stats{padding:12px}.replay-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.replay-summary-cell{min-width:0;padding:10px 9px;border-radius:6px;background:#213549;border:1px solid #355064}.replay-summary-cell small{display:block;color:#9cb2c3;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.replay-summary-cell strong{display:block;font-size:17px;color:#dbeaf4;margin-top:4px;font-variant-numeric:tabular-nums}
+.replay-unit-stats-title{font-size:11px;font-weight:720;display:flex;justify-content:space-between;gap:6px;margin:20px 0 8px;color:#d7e5f1}.replay-unit-stats-title span{font-size:10px;color:#8db2bd;font-weight:500}.replay-stats-table-wrap{overflow-x:auto;scrollbar-width:thin}.replay-stats-table{width:100%;border-collapse:collapse;font-size:10px}.replay-stats-table th{color:#91a9bb;font-size:8px;text-align:left;padding:8px 4px;border-bottom:1px solid #425a6c}.replay-stats-table td{padding:9px 4px;border-bottom:1px solid #31485b;color:#cbd9e7}.replay-stats-table td strong{display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.replay-stats-table td small{display:block;font-size:9px;color:#8fa6b8}.replay-stats-table td.number{text-align:right;font-variant-numeric:tabular-nums}.replay-stat-hp{height:5px;border-radius:3px;background:#344050;overflow:hidden;min-width:43px}.replay-stat-hp span{display:block;height:100%;background:#78cdb4}.replay-fallen{opacity:.58}
+.battle-replay-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 17px;border-top:1px solid #344d5b;flex-shrink:0;background:#152434}.battle-replay-footer span{color:#94adbf;font-size:10px;line-height:1.45}
+@media(max-width:900px){.battle-replay-header{align-items:flex-start}.battle-replay-header-actions{flex-wrap:wrap;justify-content:flex-end}.battle-replay-grid{grid-template-columns:minmax(0,1fr)}.replay-stage{height:325px}.battle-replay-dialog{height:calc(100vh - 18px)}.replay-analytics{min-width:0}}
+@media(max-width:570px){.battle-replay-header{padding:11px;display:block}.battle-replay-header-actions{justify-content:flex-start;margin-top:8px}.battle-replay-scroll{padding:9px}.replay-stage{height:300px}.replay-unit{width:64px}.replay-unit-bubble{width:37px;height:37px}.battle-replay-footer{padding:9px}.battle-replay-footer span{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.replay-unit,.replay-unit-hp span,.replay-trail{animation:none!important;transition:none!important}}
 </style>
   <style>.boot-fallback{max-width:560px;margin:12vh auto;padding:24px;background:#1a2839;border:1px solid #436075;border-radius:12px;color:#e7eff6;font:15px/1.6 system-ui,sans-serif}.boot-fallback strong{font-size:21px}.boot-fallback p{color:#a9c0d4}</style>
 </head>
@@ -436,6 +467,117 @@ const recipes = {
   atlantis:{hero:'marie',level:170,equipment:'spark',relic:'ember',cost:{gold:350000,xp:18000,medals:36,shards:20},description:'Improve area clearance in the deep wave.',suggested:'Storm Response'}
 };
 const formatNum = value => new Intl.NumberFormat('en-US',{notation:Math.abs(value)>=1000000?'compact':'standard',maximumFractionDigits:Math.abs(value)>=1000000?1:0}).format(value);
+
+// Pure, deterministic *synthetic* combat trace generator for the UI prototype.
+// This is NOT Heroes of History game mechanics or a native Unity/WASM replay.
+// API deliberately operates on plain data, so a verified native trace can replace it.
+
+const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+const round1 = n => Math.round(n * 10) / 10;
+
+function seedRandom(seed) {
+  let state = (Number(seed) >>> 0) || 0x6d2b79f5;
+  return () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return (state >>> 0) / 4294967296;
+  };
+}
+
+function baseStat() { return { damage: 0, taken: 0, healing: 0, abilities: 0, kills: 0 }; }
+function cloneStats(items) { return items.map(value => ({ ...value })); }
+
+/**
+ * @param {{id:string,name:string,seed:string|number,team:string,mode:string}} battle
+ * @param {{id:string,name:string,heroes:string[]}} formation
+ * @param {Array<{id:string,name:string,portrait:string,role:string,attack:number,health:number}>} heroDefinitions
+ */
+function simulateMockBattle(battle, formation, heroDefinitions) {
+  if (!battle || !formation || !Array.isArray(formation.heroes)) throw Error('A battle and formation are required');
+  const random = seedRandom(battle.seed);
+  const heroById = new Map(heroDefinitions.map(hero => [hero.id, hero]));
+  const roster = formation.heroes.map((id, i) => {
+    const hero = heroById.get(id);
+    if (!hero) throw Error(`Unknown mock hero: ${id}`);
+    return {
+      id:`ally-${id}`, heroId:id, name:hero.name, short:hero.portrait || hero.name.slice(0,2),
+      team:'ally', role:hero.role, slot:i,
+      maxHp: Math.max(350, Math.round(hero.health * 0.044)),
+      attack: Math.max(24, Math.round(hero.attack * 0.027)),
+      initialX: [31,19,19,31,19][i] ?? 20, initialY:[24,17,50,72,82][i] ?? 50
+    };
+  });
+  const enemies = ['Vanguard','Sentinel','Arcanist','Raider','Warlord'].map((name, i) => ({
+    id:`enemy-${i}`,heroId:null,name,short:['VG','SE','AR','RA','WL'][i],team:'enemy',role: i===2?'Caster':i===4?'Boss':'Enemy',slot:i,
+    maxHp:Math.round((890 + random()*450) * (battle.result==='Defeat'?1.13:1)),
+    attack:Math.round((52+random()*30) * (battle.result==='Defeat'?1.18:1)),
+    initialX:[69,81,81,69,81][i],initialY:[24,17,50,72,82][i]
+  }));
+  const units=[...roster,...enemies];
+  const hp=units.map(u=>u.maxHp),stats=units.map(baseStat);
+  const next=units.map((u,i)=>round1(0.65+i*0.07+random()*0.8));
+  const casts=units.map(()=>0);
+  const events=[],frames=[];
+  const frame = (time)=>({ time: round1(time), hp:hp.slice(), stats:cloneStats(stats), eventCount:events.length });
+  frames.push(frame(0));
+  let end=0;
+  for(let tick=1;tick<=320;tick++){
+    const time=round1(tick*0.2);
+    const order=units.map((_,i)=>i).sort((a,b)=>next[a]-next[b]||a-b);
+    for(const i of order){
+      if(hp[i]<=0 || next[i]>time+0.0001) continue;
+      const unit=units[i];
+      const enemyIndices=units.map((u,index)=>u.team!==unit.team&&hp[index]>0?index:-1).filter(index=>index>=0);
+      if(!enemyIndices.length)break;
+      casts[i]++;
+      const ability=unit.team==='ally'&&casts[i]%5===0 || unit.team==='enemy'&&casts[i]%7===0;
+      const heal=unit.team==='ally'&&(/support|healer/i.test(unit.role))&&ability;
+      if(heal){
+        const targets=units.map((u,index)=>u.team===unit.team&&hp[index]>0?index:-1).filter(index=>index>=0);
+        const target=targets.reduce((best,index)=>hp[index]/units[index].maxHp<hp[best]/units[best].maxHp?index:best,targets[0]);
+        const amount=Math.min(units[target].maxHp-hp[target],Math.round(unit.attack*(0.7+random()*0.45)));
+        hp[target]+=amount;stats[i].healing+=amount;stats[i].abilities++;
+        events.push({time,source:i,target,kind:'heal',ability:'Synthetic support pulse',amount,hpAfter:hp[target]});
+      }else{
+        const target=enemyIndices[Math.floor(random()*enemyIndices.length)];
+        const raw=Math.round(unit.attack*(0.69+random()*0.58)*(ability?1.65:1));
+        const amount=Math.min(hp[target],raw);
+        hp[target]-=amount;stats[i].damage+=amount;stats[target].taken+=amount;
+        if(ability)stats[i].abilities++;
+        if(hp[target]===0)stats[i].kills++;
+        events.push({time,source:i,target,kind:ability?'ability':'attack',ability:ability?'Synthetic power strike':null,amount,hpAfter:hp[target],defeated:hp[target]===0});
+      }
+      next[i]=round1(time+(unit.team==='ally'?0.83:1.08)+random()*(unit.team==='ally'?0.82:1.06));
+    }
+    frames.push(frame(time));
+    end=time;
+    if(!hp.slice(0,roster.length).some(v=>v>0)||!hp.slice(roster.length).some(v=>v>0))break;
+  }
+  const alliesAlive=hp.slice(0,roster.length).filter(v=>v>0).length;
+  const enemiesAlive=hp.slice(roster.length).filter(v=>v>0).length;
+  const outcome=enemiesAlive===0?'Victory':alliesAlive===0?'Defeat':'Time limit';
+  return {kind:'synthetic',battleId:battle.id,seed:String(battle.seed),formationId:formation.id,units,events,frames,
+    duration:end,outcome,step:0.2,recordedResult:battle.result};
+}
+
+/** A single authoritative time projection; all UI statistics are based on this frame. */
+function mockReplayAt(trace, requestedTime) {
+  const time=clamp(Number(requestedTime)||0,0,trace.duration);
+  const index=clamp(Math.floor((time+0.000001)/trace.step),0,trace.frames.length-1);
+  const frame=trace.frames[index];
+  const units=trace.units.map((unit,i)=>({...unit,hp:frame.hp[i],stats:{...frame.stats[i]},alive:frame.hp[i]>0}));
+  const team=(side)=>{
+    const members=units.filter(u=>u.team===side);
+    return {alive:members.filter(u=>u.alive).length, total:members.length,
+      currentHp:members.reduce((n,u)=>n+u.hp,0),maxHp:members.reduce((n,u)=>n+u.maxHp,0),
+      damage:members.reduce((n,u)=>n+u.stats.damage,0),healing:members.reduce((n,u)=>n+u.stats.healing,0),
+      kills:members.reduce((n,u)=>n+u.stats.kills,0),abilities:members.reduce((n,u)=>n+u.stats.abilities,0)};
+  };
+  return {time,frameTime:frame.time,units,ally:team('ally'),enemy:team('enemy'),
+    events:trace.events.slice(0,frame.eventCount),
+    recent:trace.events.slice(0,frame.eventCount).filter(ev=>time-ev.time>=-0.001&&time-ev.time<0.76)};
+}
 
 
 const app=document.getElementById('app');
@@ -612,7 +754,7 @@ const saveDraft=()=>{try{localStorage.setItem(STORAGE,JSON.stringify({changes:st
 let timer;
 const toast=msg=>{state.toast=msg;renderToast();clearTimeout(timer);timer=setTimeout(()=>{state.toast='';renderToast()},2900)};
 function renderToast(){document.querySelector('#toast')?.replaceChildren();if(state.toast){const el=document.createElement('div');el.className='toast-message';el.textContent=state.toast;document.querySelector('#toast')?.append(el)}}
-function goto(view){state.heroDialogOpen=false;state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
+function goto(view){if(replaySession)closeBattleReplay({restoreFocus:false});state.heroDialogOpen=false;state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
 const statusDot=t=>t==='Defeat'?'danger':t==='Victory'?'success':'warning';
 const titleFor=()=>({overview:['Command center','Your battle performance and the next lowest-cost improvements'],heroes:['Hero roster','Inspect stats, experiment with upgrades, and save a draft build'],equipment:['Equipment inventory','Compare items, bonuses, and current assignment'],relics:['Relic vault','Inspect individual relic stats, abilities and equipped heroes'],resources:['Resources & farming','Available currency, estimated income, and upgrade shortages'],battles:['Battle records','Prioritize failed and sub-3-star battles by farming time'],arena:['Arena optimizer','Select the best saved formation or generate a candidate'],planner:['Upgrade planner','Review all drafted changes and their combined farming costs']})[state.view];
 function shell(){return `<div class="app-shell">
@@ -621,7 +763,7 @@ function shell(){return `<div class="app-shell">
     <div class="nav-caption second">OPTIMIZATION</div>${menus.slice(6).map(([id,label])=>`<button class="nav-item ${state.view===id?'selected':''}" data-nav="${id}"><span class="nav-icon">${icons[id]}</span><span>${label}</span>${id==='planner'&&Object.keys(state.changes).length?`<span class="nav-count">${Object.keys(state.changes).length}</span>`:''}</button>`).join('')}
     <div class="sidebar-bottom"><div class="mock-box"><span class="muted overline">SIMULATION ENGINE</span><div class="small-row"><span class="offline-indicator"></span><strong>Not connected</strong></div><p>Win rates and costs are illustrative. No game file is loaded.</p></div><button class="sidebar-link" data-action="resetAll">↺ <span>Reset demo</span></button></div></aside>
   <main class="workspace"><div class="view-header"><div><div class="breadcrumb">BATTLE LAB <span> / </span> ${state.view.toUpperCase()}</div><h1>${titleFor()[0]}</h1><p>${titleFor()[1]}</p></div><div class="header-actions">${state.view==='heroes'||state.view==='planner'?`<span class="draft-indicator">● ${draftStatus()}</span>${btn('Save plan','savePlan','primary')}`:state.view==='arena'?btn('Optimize all opponents','optimizeAll','primary'):state.view==='battles'?btn('View upgrade plan','goPlanner','primary'):btn('Upgrade planner','goPlanner','secondary')}</div></div><div id="view-content" class="view-content">${renderView()}</div></main>
-  <footer class="statusbar"><span><i class="status-led"></i> Prototype · local mock data</span><span>${heroes.length} heroes <span class="separator">·</span> ${battles.length} battles <span class="separator">·</span> ${opponents.length} opponents</span><span>100% local <span class="separator">·</span> v0.1.0</span></footer><div id="toast"></div><div id="hero-modal-root"></div><div id="modal-root"></div></div>`}
+  <footer class="statusbar"><span><i class="status-led"></i> Prototype · local mock data</span><span>${heroes.length} heroes <span class="separator">·</span> ${battles.length} battles <span class="separator">·</span> ${opponents.length} opponents</span><span>100% local <span class="separator">·</span> v0.1.0</span></footer><div id="toast"></div><div id="hero-modal-root"></div><div id="battle-replay-root"></div><div id="modal-root"></div></div>`}
 function toolbar(placeholder,extra=''){return `<div class="table-toolbar"><label class="search-box"><span>⌕</span><input id="global-search" placeholder="${esc(placeholder)}" value="${esc(state.search)}" /></label>${extra}<span class="toolbar-spacer"></span><span class="record-count" id="record-count"></span></div>`}
 function table(columns,rows,empty='No results'){return `<div class="table-scroller"><table class="data-table"><thead><tr>${columns.map(c=>`<th class="${c.align||''}" ${c.width?`style="width:${c.width}"`:''} data-sort="${c.key||''}">${c.label} ${c.key?'<span class="sort-arrow">↕</span>':''}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${columns.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`}
 function sortedFiltered(items,searchText,selectors){let arr=items.filter(x=>selectors(x).toLowerCase().includes(searchText.toLowerCase()));if(state.sortKey)arr=[...arr].sort((a,b)=>{const av=state.sortKey.split('.').reduce((v,k)=>v?.[k],a)??'',bv=state.sortKey.split('.').reduce((v,k)=>v?.[k],b)??'';return (typeof av==='number'&&typeof bv==='number'?av-bv:String(av).localeCompare(String(bv)))*state.sortDir});return arr}
@@ -723,7 +865,17 @@ function inventoryView(type){
   }))}</section><aside class="inspector"><div class="inspector-heading">EQUIPMENT DETAILS ${badge('Mock values','demo')}</div><div class="inspector-section">${itemDetail(state.selectedItem||'scientist-pen')}<div class="inspector-actions inline-actions">${equipmentOwner(state.selectedItem)?`<button class="btn secondary" data-hero="${equipmentOwner(state.selectedItem).heroId}">Open owning hero</button>`:''}</div></div></aside></div>`;
 }
 function resourceView(){const cost=allCosts(),filtered=sortedFiltered(resources,state.search,x=>`${x.name} ${x.type}`);return `<div class="resource-layout"><div class="resource-summary">${[['Total resource types',resources.length],['Draft resource types',Object.keys(cost).length],['Longest shortfall',`${farmDays(cost).toFixed(1)} days`]].map(([k,v])=>`<div class="summary-tile"><small>${k}</small><strong>${v}</strong></div>`).join('')}</div><section class="panel table-panel full-panel">${toolbar('Search resource...')}${table([{label:'Resource',key:'name'},{label:'Category',key:'type'},{label:'Owned',key:'owned',align:'number'},{label:'Income / day',key:'perDay',align:'number'},{label:'Draft cost',align:'number'},{label:'Missing',align:'number'},{label:'Additional farm days',align:'number'}],filtered.map(x=>`<tr><td><span class="entity-line"><span class="resource-orb" style="--res:${x.color}">${x.icon}</span><strong>${esc(x.name)}</strong></span></td><td>${esc(x.type)}</td><td class="number">${fmt(x.owned)}</td><td class="number positive">+${fmt(x.perDay)}</td><td class="number">${fmt(cost[x.id]||0)}</td><td class="number ${farmGap(x.id,cost[x.id]||0)?'negative':''}">${fmt(farmGap(x.id,cost[x.id]||0))}</td><td class="number">${((farmGap(x.id,cost[x.id]||0))/x.perDay).toFixed(1)} d</td></tr>`))}</section></div>`}
-function battlesView(){const filtered=sortedFiltered(battles.filter(x=>state.battleFilter==='Needs improvement'?x.stars<3:state.battleFilter==='Defeats'?x.result==='Defeat':true),state.search,x=>`${x.name} ${x.mode} ${x.result} ${x.seed}`);return `<div class="split-view"><section class="panel table-panel">${toolbar('Search battle, seed, mode...',`<select class="toolbar-select" id="battle-filter"><option ${state.battleFilter==='Needs improvement'?'selected':''}>Needs improvement</option><option ${state.battleFilter==='Defeats'?'selected':''}>Defeats</option><option ${state.battleFilter==='All'?'selected':''}>All</option></select>`)}${table([{label:'Battle'},{label:'Result',key:'result'},{label:'Stars',key:'stars'},{label:'Recorded'},{label:'Recommended farm',align:'number'},{label:'Seed'}],filtered.map(b=>`<tr data-battle="${b.id}" class="clickable ${state.selectedBattle===b.id?'active-row':''}"><td><strong>${esc(b.name)}</strong><div class="cell-sub">${esc(b.mode)}</div></td><td>${badge(b.result,b.result==='Defeat'?'danger':'success')}</td><td>${stars(b.stars)}</td><td>${esc(b.last)}</td><td class="number">${b.plan?`${farmDays(recipes[b.plan].cost).toFixed(1)} d`:'—'}</td><td class="mono">${b.seed}</td></tr>`))}</section><aside class="inspector">${battleInspector()}</aside></div>`}
+function battlesView(){
+  const filtered=sortedFiltered(battles.filter(x=>state.battleFilter==='Needs improvement'?x.stars<3:state.battleFilter==='Defeats'?x.result==='Defeat':true),state.search,x=>`${x.name} ${x.mode} ${x.result} ${x.seed}`);
+  const rows=filtered.map(b=>`<tr data-battle="${b.id}" class="clickable ${state.selectedBattle===b.id?'active-row':''}">
+    <td><strong>${esc(b.name)}</strong><div class="cell-sub">${esc(b.mode)}</div></td>
+    <td>${badge(b.result,b.result==='Defeat'?'danger':'success')}</td><td>${stars(b.stars)}</td>
+    <td>${esc(b.last)}</td><td class="number">${b.plan?`${farmDays(recipes[b.plan].cost).toFixed(1)} d`:'—'}</td>
+    <td class="mono">${esc(b.seed)}</td>
+    <td class="battle-replay-open"><button type="button" class="battle-replay-icon" data-open-battle-replay="${b.id}" title="Open replay for ${esc(b.name)}" aria-label="Open replay for ${esc(b.name)}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 8 6 4-6 4V8Z"/></svg></button></td>
+  </tr>`);
+  return `<div class="split-view battle-records-view"><section class="panel table-panel">${toolbar('Search battle, seed, mode...',`<select class="toolbar-select" id="battle-filter"><option ${state.battleFilter==='Needs improvement'?'selected':''}>Needs improvement</option><option ${state.battleFilter==='Defeats'?'selected':''}>Defeats</option><option ${state.battleFilter==='All'?'selected':''}>All</option></select>`)}${table([{label:'Battle'},{label:'Result',key:'result'},{label:'Stars',key:'stars'},{label:'Recorded'},{label:'Recommended farm',align:'number'},{label:'Seed'},{label:'Details',width:'64px',align:'battle-replay-heading'}],rows)}</section><aside class="inspector">${battleInspector()}</aside></div>`;
+}
 function battleInspector(){const b=battles.find(x=>x.id===state.selectedBattle),r=b.plan?recipes[b.plan]:null,hero=r?h(r.hero):null;return `<div class="inspector-heading">BATTLE ANALYSIS <span>${badge(b.result,b.result==='Defeat'?'danger':'success')}</span></div><div class="inspector-section battle-top"><h2>${esc(b.name)}</h2><div class="muted">${esc(b.mode)} · Seed ${b.seed}</div><div class="battle-stars">${stars(b.stars)} <span class="muted">${b.stars} / 3 stars</span></div><div class="info-pairs"><span>Saved formation</span><strong>${esc(squad(b.team).name)}</strong><span>Last recorded</span><strong>${esc(b.last)}</strong><span>Target</span><strong>${esc(b.target)}</strong></div></div>${r?`<div class="inspector-section"><div class="section-head"><b>Lowest-cost candidate</b>${badge('Estimate','demo')}</div><div class="recommend-box"><div class="recommend-title">${heroLabel(hero,false)}</div><p>${esc(r.description)}</p><div class="recommend-arrow">Level ${hero.level} → ${r.level} <span>·</span> ${esc(r.suggested)}</div></div></div><div class="inspector-section costs-section"><div class="section-head"><b>Candidate costs</b></div><div class="chip-grid">${costChips(r.cost)}</div><div class="estimate-line"><span>Additional farming</span><strong>${farmDays(r.cost).toFixed(1)} days</strong></div><p class="muted hint">This candidate is illustrative, not a verified 3-star native simulation.</p></div><div class="inspector-actions">${btn('Add changes to draft','applyBattle','primary')}${btn('Open upgrade planner','goPlanner')}</div>`:`<div class="inspector-section"><div class="success-note">✓ This recorded battle already has 3 stars.</div></div>`}`}
 function arenaView(){const list=opponents.filter(x=>state.arenaMode==='All'||x.mode===state.arenaMode).filter(x=>`${x.name} ${x.mode} ${x.traits}`.toLowerCase().includes(state.search.toLowerCase()));const o=opponents.find(x=>x.id===state.selectedOpponent);return `<div class="split-view"><section class="panel table-panel">${toolbar('Find opponent...',`<select id="arena-mode" class="toolbar-select">${['All','Arena','Elite Arena'].map(x=>`<option ${x===state.arenaMode?'selected':''}>${x}</option>`).join('')}</select>`)}${table([{label:'Opponent'},{label:'Rank',align:'number'},{label:'Saved formation'},{label:'Saved win %',align:'number'},{label:'Suggested formation'},{label:'Predicted win %',align:'number'},{label:'Confidence'}],list.map(x=>`<tr class="clickable ${state.selectedOpponent===x.id?'active-row':''}" data-opponent="${x.id}"><td><span class="entity-line"><span class="opponent-emblem">${x.name.split(' ').map(v=>v[0]).join('')}</span><span><strong>${esc(x.name)}</strong><small>${esc(x.mode)} · ${esc(x.traits)}</small></span></span></td><td class="number">#${x.rank}</td><td>${esc(squad(x.current).name)}</td><td class="number ${x.win<70?'negative':''}">${x.win}%</td><td>${esc(squad(x.alternative).name)}</td><td class="number"><strong class="positive">${x.predicted}%</strong> ${x.predicted>x.win?`<small class="positive">+${x.predicted-x.win} pp</small>`:''}</td><td>${badge(x.confidence,x.confidence==='High'?'success':x.confidence==='Low'?'warning':'neutral')}</td></tr>`))}</section><aside class="inspector">${arenaInspector(o)}</aside></div>`}
 function arenaInspector(o){const saved=squad(o.current),candidate=squad(o.alternative);return `<div class="inspector-heading">OPPONENT INTELLIGENCE ${badge(o.mode)}</div><div class="inspector-section"><div class="opponent-profile"><span class="opponent-emblem big">${o.name.split(' ').map(v=>v[0]).join('')}</span><div><h2>${esc(o.name)}</h2><div class="muted">Rank #${o.rank} · ${fmt(o.power)} power</div></div></div><div class="opponent-tags">${badge(o.traits)} ${badge(`${o.confidence} confidence`)}</div><div class="info-pairs"><span>Observed wins</span><strong>${o.record}</strong><span>Saved formation</span><strong>${esc(saved.name)}</strong></div></div><div class="inspector-section"><div class="section-head"><b>Recommended formation</b>${badge('Mock ranking','demo')}</div><div class="comparison"><div><small>Current</small><strong>${o.win}%</strong></div><div class="comparison-arrow">→</div><div><small>Suggested</small><strong class="positive">${o.predicted}%</strong></div></div><div class="squad-name">${esc(candidate.name)} <span>${badge(candidate.tag)}</span></div><div class="squad-portraits">${candidate.heroes.map(id=>`<span title="${esc(h(id).name)}">${portrait(h(id),'squad')}</span>`).join('')}</div><p class="muted hint">Win percentages are static fixture values, not real battle samples or confidence intervals.</p></div><div class="inspector-section"><div class="section-head"><b>Alternatives</b></div><div class="alternative-row"><span>${esc(saved.name)}</span><strong>${o.win}%</strong></div><div class="alternative-row"><span>${esc(candidate.name)}</span><strong class="positive">${o.predicted}%</strong></div></div><div class="inspector-actions">${btn('Use recommended formation','useFormation','primary')}${btn('Inspect roster','goHeroes')}</div>`}
@@ -762,7 +914,7 @@ function heroDialogMarkup(){
   </section></div>`;
 }
 function syncOverlayInert(){
-  const overlay=state.heroDialogOpen||Boolean(equipmentPicker)||Boolean(relicPicker);
+  const overlay=state.heroDialogOpen||Boolean(equipmentPicker)||Boolean(relicPicker)||Boolean(replaySession);
   for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))overlay?el.setAttribute('inert',''):el.removeAttribute('inert');
   const parent=document.querySelector('#hero-modal-root');
   if(parent){if(equipmentPicker||relicPicker)parent.setAttribute('inert','');else parent.removeAttribute('inert');}
@@ -822,7 +974,7 @@ function render(){
   const activeId=activeInHero&&active?.id||'';
   const activeAction=activeInHero&&active?.dataset?.action||'';
   const activeSlot=activeInHero&&active?.dataset?.selectSlot||'';
-  app.innerHTML=shell();syncRecordCount();renderToast();showHeroDialog(scroll);
+  app.innerHTML=shell();syncRecordCount();renderToast();showHeroDialog(scroll);if(replaySession)renderBattleReplayModal();
   if(activeInHero&&state.heroDialogOpen){
     const target=activeId?document.getElementById(activeId):activeAction?document.querySelector(`.hero-detail-dialog [data-action="${activeAction}"]`):activeSlot?document.querySelector(`.hero-detail-dialog [data-select-slot="${activeSlot}"]`):null;
     target?.focus({preventScroll:true});
@@ -1018,6 +1170,134 @@ function chooseRelicPickerItem(itemId){
   document.querySelector('[data-action="openRelicPicker"]')?.focus();
 }
 
+// Battle Replay UI: synthetic trace adapter only; authoritative contract DESIGN.md §25.
+let replaySession=null, replayFrameHandle=null;
+const replayTimeLabel=n=>`${Math.max(0,Number(n)||0).toFixed(1)}s`;
+function cancelReplayFrame(){if(replayFrameHandle!==null&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(replayFrameHandle);replayFrameHandle=null;}
+function pauseReplay(){if(!replaySession)return;replaySession.playing=false;replaySession.lastTick=null;cancelReplayFrame();updateReplayFrame();}
+function closeBattleReplay({restoreFocus=true}={}){
+  const id=replaySession?.id;
+  cancelReplayFrame();replaySession=null;
+  const root=document.querySelector('#battle-replay-root');if(root)root.innerHTML='';
+  syncOverlayInert();
+  if(restoreFocus&&id)document.querySelector(`[data-open-battle-replay="${id}"]`)?.focus({preventScroll:true});
+}
+function replayBattleScene(trace,snapshot){
+  const active=snapshot.recent.slice(-5);
+  const trails=active.map(event=>{
+    const from=trace.units[event.source],to=trace.units[event.target];
+    if(!from||!to)return '';
+    const color=event.kind==='heal'?'#71e4b8':event.kind==='ability'?'#efc478':'#86bbeb';
+    return `<line x1="${from.initialX}" y1="${from.initialY}" x2="${to.initialX}" y2="${to.initialY}" stroke="${color}" stroke-width=".75" stroke-linecap="round" opacity=".84" class="replay-trail"/>`;
+  }).join('');
+  const units=snapshot.units.map((unit,i)=>{
+    const acted=active.some(ev=>ev.source===i),hit=active.some(ev=>ev.target===i);
+    const wobble=unit.alive?Math.sin(snapshot.time*(i%2?2.4:3.2)+i)*1.15:0;
+    const lunge=acted?(unit.team==='ally'?2.7:-2.7):0;
+    const x=unit.initialX+wobble*.55+lunge,y=unit.initialY+wobble*.65;
+    const hp=Math.max(0,Math.round(unit.hp/unit.maxHp*100));
+    return `<div class="replay-unit ${unit.team} ${unit.alive?'':'is-defeated'} ${acted?'is-attacking':''} ${hit?'is-hit':''}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%" title="${esc(unit.name)} · ${unit.hp} / ${unit.maxHp} HP">
+      <div class="replay-unit-bubble">${esc(unit.short)}</div>
+      <div class="replay-unit-hp"><span style="width:${hp}%"></span></div>
+      <div class="replay-unit-name">${esc(unit.name)}</div>
+    </div>`;
+  }).join('');
+  return `<div class="replay-stage-grid" aria-label="Illustrative animated positions of friendly heroes and synthetic enemies">
+    <div class="replay-stage-half replay-stage-friendly"></div><div class="replay-stage-half replay-stage-hostile"></div>
+    <span class="replay-side-label friendly">YOUR FORMATION</span><span class="replay-side-label hostile">MOCK ENEMIES</span>
+    <div class="replay-center-circle"></div><div class="replay-center-line"></div>
+    <svg class="replay-trails" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${trails}</svg>
+    ${units}
+  </div>`;
+}
+function replayStatsMarkup(snapshot){
+  const summary=[['Allies alive',`${snapshot.ally.alive}/${snapshot.ally.total}`],['Enemy alive',`${snapshot.enemy.alive}/${snapshot.enemy.total}`],['Team damage',fmt(snapshot.ally.damage)],['Damage taken',fmt(snapshot.enemy.damage)],['Healing',fmt(snapshot.ally.healing)],['Ability casts',fmt(snapshot.ally.abilities)]];
+  const rows=snapshot.units.filter(u=>u.team==='ally').map(u=>{
+    const ratio=u.maxHp?Math.round(100*u.hp/u.maxHp):0;
+    return `<tr class="${u.alive?'':'replay-fallen'}"><td><strong>${esc(u.name)}</strong><small>${esc(u.role)}</small></td><td><div class="replay-stat-hp"><span style="width:${ratio}%"></span></div><small>${fmt(u.hp)} / ${fmt(u.maxHp)}</small></td><td class="number">${fmt(u.stats.damage)}</td><td class="number">${fmt(u.stats.taken)}</td><td class="number">${fmt(u.stats.healing)}</td><td class="number">${u.stats.abilities}</td></tr>`;
+  }).join('');
+  return `<div class="replay-summary-grid">${summary.map(([k,v])=>`<div class="replay-summary-cell"><small>${k}</small><strong>${v}</strong></div>`).join('')}</div>
+    <div class="replay-unit-stats-title">Hero contributions <span>At ${replayTimeLabel(snapshot.time)}</span></div>
+    <div class="replay-stats-table-wrap"><table class="replay-stats-table"><thead><tr><th>Hero</th><th>HP</th><th>DMG</th><th>TAKEN</th><th>HEAL</th><th>CASTS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function replayEventsMarkup(trace,snapshot){
+  const visible=snapshot.events.slice(-9).reverse();
+  if(!visible.length)return '<p class="replay-events-empty">Events appear here as the synthetic battle progresses.</p>';
+  return visible.map(e=>{
+    const source=trace.units[e.source],target=trace.units[e.target];
+    const what=e.kind==='heal'?'healed':e.kind==='ability'?'ability hit':'attacked';
+    return `<div class="replay-event ${e.kind}"><span class="replay-event-time">${replayTimeLabel(e.time)}</span><span><b>${esc(source.name)}</b> ${what} <b>${esc(target.name)}</b> <strong>${e.kind==='heal'?'+':'−'}${fmt(e.amount)}</strong>${e.defeated?'<em> · defeated</em>':''}</span></div>`;
+  }).join('');
+}
+function replayModalMarkup(){
+  if(!replaySession)return '';
+  const {id,trace}=replaySession,b=battles.find(x=>x.id===id),s=squad(b.team);
+  const markers=trace.events.filter(e=>e.kind==='ability'||e.kind==='heal'||e.defeated).map(e=>`<i class="replay-event-marker ${e.kind}" title="${replayTimeLabel(e.time)} ${esc(e.kind)}" style="left:${(100*e.time/Math.max(.1,trace.duration)).toFixed(2)}%"></i>`).join('');
+  return `<div class="modal-backdrop battle-replay-backdrop" data-battle-replay-backdrop><section class="battle-replay-dialog" role="dialog" aria-modal="true" aria-labelledby="replay-dialog-title" aria-describedby="replay-dialog-caption" tabindex="-1">
+    <header class="battle-replay-header"><div class="battle-replay-heading"><span class="section-kicker">BATTLE RECORD · SYNTHETIC REPLAY</span><h2 id="replay-dialog-title">${esc(b.name)}</h2><p id="replay-dialog-caption">${esc(b.mode)} · Seed ${esc(b.seed)} · ${esc(s?.name||'Unknown formation')} · Illustrative positions, attacks and stats</p></div>
+    <div class="battle-replay-header-actions">${badge('Mock simulation','demo')}<span class="replay-outcome-pair"><small>Recorded</small>${badge(b.result,b.result==='Defeat'?'danger':'success')}</span><span class="replay-outcome-pair"><small>Simulated</small>${badge(trace.outcome,trace.outcome==='Victory'?'success':'warning')}</span><button type="button" class="hero-dialog-close" data-replay-action="close" aria-label="Close battle replay">×</button></div></header>
+    <div class="battle-replay-scroll"><div class="battle-replay-grid"><div class="battle-replay-primary">
+      <section class="replay-scene-panel"><div class="replay-panel-heading"><strong>Battlefield</strong><span class="muted">Animated illustrative formation · simulated HP</span></div><div id="replay-scene" class="replay-stage" aria-live="off"></div></section>
+      <section class="replay-transport"><div class="replay-controls"><button type="button" class="replay-control-button" data-replay-action="restart" title="Restart" aria-label="Restart replay">↺</button><button type="button" class="replay-control-button step" data-replay-action="back" title="Step back 0.2 seconds" aria-label="Step back">‹</button><button type="button" class="replay-control-button replay-play" data-replay-action="play" aria-label="Play replay">▶ Play</button><button type="button" class="replay-control-button step" data-replay-action="forward" title="Step forward 0.2 seconds" aria-label="Step forward">›</button><label class="replay-speed-label">Speed <select id="replay-speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label></div>
+      <div class="replay-timeline-labels"><strong id="replay-time-text">0.0s</strong><span>of ${replayTimeLabel(trace.duration)}</span></div>
+      <div class="replay-timeline-wrap"><div class="replay-event-track" aria-hidden="true">${markers}</div><input id="replay-time" type="range" min="0" max="${trace.duration}" step="0.1" value="0" aria-label="Replay time" aria-valuetext="0.0 seconds"/></div></section>
+      <section class="replay-events-panel"><div class="replay-panel-heading"><strong>Event timeline</strong><span id="replay-event-count" class="muted">0 events</span></div><div id="replay-event-feed" class="replay-event-feed" aria-label="Events up to selected replay time"></div></section>
+    </div><aside class="replay-analytics"><div class="replay-panel-heading"><strong>Combat analytics</strong>${badge('From trace','demo')}</div><div id="replay-stats" aria-live="off"></div></aside></div></div>
+    <footer class="battle-replay-footer"><span>Local deterministic sample — not native Unity/WASM simulation, real replay coordinates, or verified damage.</span><button type="button" class="btn primary" data-replay-action="close">Close</button></footer>
+  </section></div>`;
+}
+function updateReplayFrame(){
+  if(!replaySession)return;
+  const {trace,time,playing}=replaySession,snapshot=mockReplayAt(trace,time);
+  const scene=document.querySelector('#replay-scene'),stats=document.querySelector('#replay-stats'),feed=document.querySelector('#replay-event-feed');
+  if(scene)scene.innerHTML=replayBattleScene(trace,snapshot);
+  if(stats)stats.innerHTML=replayStatsMarkup(snapshot);
+  if(feed)feed.innerHTML=replayEventsMarkup(trace,snapshot);
+  const text=document.querySelector('#replay-time-text');if(text)text.textContent=replayTimeLabel(time);
+  const slider=document.querySelector('#replay-time');if(slider){slider.value=String(Math.min(trace.duration,time));slider.setAttribute('aria-valuetext',`${replayTimeLabel(time)} of ${replayTimeLabel(trace.duration)}`);slider.style.setProperty('--replay-progress',`${100*time/Math.max(.1,trace.duration)}%`);}
+  const count=document.querySelector('#replay-event-count');if(count)count.textContent=`${snapshot.events.length} / ${trace.events.length} events`;
+  const button=document.querySelector('[data-replay-action="play"]');if(button){button.textContent=playing?'Ⅱ Pause':time>=trace.duration?'↺ Replay':'▶ Play';button.setAttribute('aria-label',playing?'Pause replay':time>=trace.duration?'Restart replay':'Play replay');}
+}
+function renderBattleReplayModal(){
+  const root=document.querySelector('#battle-replay-root');if(!root)return;
+  root.innerHTML=replayModalMarkup();syncOverlayInert();updateReplayFrame();
+}
+function openBattleReplay(battleId){
+  const battle=battles.find(b=>b.id===battleId);if(!battle)return;
+  if(replaySession)closeBattleReplay({restoreFocus:false});
+  const formation=squad(battle.team);if(!formation)return;
+  state.selectedBattle=battleId;state.view='battles';
+  const trace=simulateMockBattle(battle,formation,heroes);
+  replaySession={id:battleId,trace,time:0,speed:1,playing:false,lastTick:null};
+  render();
+  document.querySelector('.battle-replay-dialog')?.focus({preventScroll:true});
+}
+function replayTick(timestamp){
+  replayFrameHandle=null;
+  const s=replaySession;if(!s||!s.playing)return;
+  if(s.lastTick!==null)s.time=Math.min(s.trace.duration,s.time+Math.max(0,Math.min(.12,(timestamp-s.lastTick)/1000))*s.speed);
+  s.lastTick=timestamp;
+  if(s.time>=s.trace.duration){s.time=s.trace.duration;s.playing=false;s.lastTick=null;}
+  updateReplayFrame();
+  if(s.playing&&replaySession===s)replayFrameHandle=requestAnimationFrame(replayTick);
+}
+function replayControl(action){
+  const s=replaySession;if(!s)return;
+  if(action==='close'){closeBattleReplay();return;}
+  if(action==='play'){
+    if(s.playing){pauseReplay();return;}
+    if(s.time>=s.trace.duration)s.time=0;
+    s.playing=true;s.lastTick=null;
+    cancelReplayFrame();
+    if(typeof requestAnimationFrame==='function')replayFrameHandle=requestAnimationFrame(replayTick);
+    updateReplayFrame();return;
+  }
+  if(action==='restart'||action==='back'||action==='forward'){
+    pauseReplay();
+    s.time=action==='restart'?0:Math.min(s.trace.duration,Math.max(0,Math.round((s.time+(action==='back'?-0.2:0.2))*10)/10));
+    updateReplayFrame();
+  }
+}
 function savePlanModal(){const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" data-action="closeModal"><form id="save-form" class="modal" role="dialog" aria-modal="true" aria-label="Save plan"><div class="modal-head"><h2>Save upgrade plan</h2><button type="button" class="icon-button" data-action="closeModal">×</button></div><p>Your current changes will be saved locally in this browser, not applied to the game.</p><label class="field-label" for="plan-name">Plan name</label><input id="plan-name" name="name" required maxlength="60" value="Battle improvements ${new Date().toLocaleDateString('en-GB')}"/><div class="modal-actions"><button type="button" class="btn secondary" data-action="closeModal">Cancel</button><button type="submit" class="btn primary">Save locally</button></div></form></div>`;root.querySelector('#plan-name')?.focus()}
 function act(action){
   if(action.startsWith('go')){goto(({goPlanner:'planner',goArena:'arena',goHeroes:'heroes',goBattles:'battles'})[action]);return}
@@ -1035,6 +1315,13 @@ function act(action){
   if(action==='optimizeAll'){toast('Candidate formations already ranked in the mock arena table');return}
 }
 document.addEventListener('click',e=>{
+  if(replaySession){
+    const control=e.target.closest('[data-replay-action]');if(control){replayControl(control.dataset.replayAction);return;}
+    if(e.target.hasAttribute('data-battle-replay-backdrop')){closeBattleReplay();return;}
+    return;
+  }
+  const replayButton=e.target.closest('[data-open-battle-replay]');
+  if(replayButton){openBattleReplay(replayButton.dataset.openBattleReplay);return;}
   if(relicPicker){
     const card=e.target.closest('[data-pick-relic]');if(card){chooseRelicPickerItem(card.dataset.pickRelic);return}
     if(e.target.closest('[data-relic-picker-unequip]')){chooseRelicPickerItem(null);return}
@@ -1084,6 +1371,10 @@ document.addEventListener('click',e=>{
   const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='closeModal'&&action.classList.contains('modal-backdrop')&&e.target!==action)return;act(action.dataset.action)}
 });
 document.addEventListener('input',e=>{
+  if(replaySession&&e.target.id==='replay-time'){
+    replaySession.time=Math.min(replaySession.trace.duration,Math.max(0,Number(e.target.value)));
+    replaySession.lastTick=null;updateReplayFrame();return;
+  }
   if(relicPicker&&e.target.id==='relic-picker-search'){relicPicker.search=e.target.value;renderRelicPickerCards();return}
   if(equipmentPicker&&e.target.id==='picker-search'){equipmentPicker.search=e.target.value;renderPickerCards();return}
   if(e.target.id==='global-search'){
@@ -1094,6 +1385,7 @@ document.addEventListener('input',e=>{
   if(e.target.id==='item-level'){const label=e.target.closest('.item-upgrade')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${eq(e.target.dataset.itemId)?.maxLevel||''}`;return}
 });
 document.addEventListener('change',e=>{
+  if(replaySession&&e.target.id==='replay-speed'){replaySession.speed=Number(e.target.value)||1;replaySession.lastTick=null;return;}
   if(e.target.id==='hero-level'){changeHero(e.target.dataset.heroId,'level',e.target.value);return}
   if(e.target.id==='item-level'){changeItemLevel(e.target.dataset.itemId,e.target.value);return}
   if(relicPicker&&['relic-picker-type','relic-picker-rarity','relic-picker-assignment','relic-picker-sort'].includes(e.target.id)){relicPicker[e.target.id.replace('relic-picker-','')]=e.target.value;renderRelicPickerCards();return}
@@ -1105,6 +1397,11 @@ document.addEventListener('change',e=>{
   if(e.target.id==='arena-mode'){state.arenaMode=e.target.value;render()}
 });
 document.addEventListener('keydown',e=>{
+  if(replaySession){
+    if(e.key==='Escape'){e.preventDefault();closeBattleReplay();return;}
+    if(e.key==='Tab'){const dialog=document.querySelector('.battle-replay-dialog');if(dialog)focusInDialog(dialog,e);}
+    return;
+  }
   if(!equipmentPicker&&!relicPicker){
     if(state.heroDialogOpen&&e.key==='Escape'){e.preventDefault();closeHeroDialog();return}
     if(state.heroDialogOpen&&e.key==='Tab'){const dialog=document.querySelector('.hero-detail-dialog');if(dialog){focusInDialog(dialog,e);return}}

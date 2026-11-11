@@ -1,4 +1,5 @@
 import {heroes,equipment,equipmentSlots,equipmentSets,relics,resources,squads,opponents,battles,recipes,formatNum} from './mock-data.js';
+import {simulateMockBattle,mockReplayAt} from './replay-simulation.js';
 
 const app=document.getElementById('app');
 const STORAGE='hoh-desktop-prototype-v2';
@@ -174,7 +175,7 @@ const saveDraft=()=>{try{localStorage.setItem(STORAGE,JSON.stringify({changes:st
 let timer;
 const toast=msg=>{state.toast=msg;renderToast();clearTimeout(timer);timer=setTimeout(()=>{state.toast='';renderToast()},2900)};
 function renderToast(){document.querySelector('#toast')?.replaceChildren();if(state.toast){const el=document.createElement('div');el.className='toast-message';el.textContent=state.toast;document.querySelector('#toast')?.append(el)}}
-function goto(view){state.heroDialogOpen=false;state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
+function goto(view){if(replaySession)closeBattleReplay({restoreFocus:false});state.heroDialogOpen=false;state.view=view;state.search='';state.sortKey='';state.selectedHero=state.selectedHero||'leonardo';render()}
 const statusDot=t=>t==='Defeat'?'danger':t==='Victory'?'success':'warning';
 const titleFor=()=>({overview:['Command center','Your battle performance and the next lowest-cost improvements'],heroes:['Hero roster','Inspect stats, experiment with upgrades, and save a draft build'],equipment:['Equipment inventory','Compare items, bonuses, and current assignment'],relics:['Relic vault','Inspect individual relic stats, abilities and equipped heroes'],resources:['Resources & farming','Available currency, estimated income, and upgrade shortages'],battles:['Battle records','Prioritize failed and sub-3-star battles by farming time'],arena:['Arena optimizer','Select the best saved formation or generate a candidate'],planner:['Upgrade planner','Review all drafted changes and their combined farming costs']})[state.view];
 function shell(){return `<div class="app-shell">
@@ -183,7 +184,7 @@ function shell(){return `<div class="app-shell">
     <div class="nav-caption second">OPTIMIZATION</div>${menus.slice(6).map(([id,label])=>`<button class="nav-item ${state.view===id?'selected':''}" data-nav="${id}"><span class="nav-icon">${icons[id]}</span><span>${label}</span>${id==='planner'&&Object.keys(state.changes).length?`<span class="nav-count">${Object.keys(state.changes).length}</span>`:''}</button>`).join('')}
     <div class="sidebar-bottom"><div class="mock-box"><span class="muted overline">SIMULATION ENGINE</span><div class="small-row"><span class="offline-indicator"></span><strong>Not connected</strong></div><p>Win rates and costs are illustrative. No game file is loaded.</p></div><button class="sidebar-link" data-action="resetAll">↺ <span>Reset demo</span></button></div></aside>
   <main class="workspace"><div class="view-header"><div><div class="breadcrumb">BATTLE LAB <span> / </span> ${state.view.toUpperCase()}</div><h1>${titleFor()[0]}</h1><p>${titleFor()[1]}</p></div><div class="header-actions">${state.view==='heroes'||state.view==='planner'?`<span class="draft-indicator">● ${draftStatus()}</span>${btn('Save plan','savePlan','primary')}`:state.view==='arena'?btn('Optimize all opponents','optimizeAll','primary'):state.view==='battles'?btn('View upgrade plan','goPlanner','primary'):btn('Upgrade planner','goPlanner','secondary')}</div></div><div id="view-content" class="view-content">${renderView()}</div></main>
-  <footer class="statusbar"><span><i class="status-led"></i> Prototype · local mock data</span><span>${heroes.length} heroes <span class="separator">·</span> ${battles.length} battles <span class="separator">·</span> ${opponents.length} opponents</span><span>100% local <span class="separator">·</span> v0.1.0</span></footer><div id="toast"></div><div id="hero-modal-root"></div><div id="modal-root"></div></div>`}
+  <footer class="statusbar"><span><i class="status-led"></i> Prototype · local mock data</span><span>${heroes.length} heroes <span class="separator">·</span> ${battles.length} battles <span class="separator">·</span> ${opponents.length} opponents</span><span>100% local <span class="separator">·</span> v0.1.0</span></footer><div id="toast"></div><div id="hero-modal-root"></div><div id="battle-replay-root"></div><div id="modal-root"></div></div>`}
 function toolbar(placeholder,extra=''){return `<div class="table-toolbar"><label class="search-box"><span>⌕</span><input id="global-search" placeholder="${esc(placeholder)}" value="${esc(state.search)}" /></label>${extra}<span class="toolbar-spacer"></span><span class="record-count" id="record-count"></span></div>`}
 function table(columns,rows,empty='No results'){return `<div class="table-scroller"><table class="data-table"><thead><tr>${columns.map(c=>`<th class="${c.align||''}" ${c.width?`style="width:${c.width}"`:''} data-sort="${c.key||''}">${c.label} ${c.key?'<span class="sort-arrow">↕</span>':''}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${columns.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`}
 function sortedFiltered(items,searchText,selectors){let arr=items.filter(x=>selectors(x).toLowerCase().includes(searchText.toLowerCase()));if(state.sortKey)arr=[...arr].sort((a,b)=>{const av=state.sortKey.split('.').reduce((v,k)=>v?.[k],a)??'',bv=state.sortKey.split('.').reduce((v,k)=>v?.[k],b)??'';return (typeof av==='number'&&typeof bv==='number'?av-bv:String(av).localeCompare(String(bv)))*state.sortDir});return arr}
@@ -285,7 +286,17 @@ function inventoryView(type){
   }))}</section><aside class="inspector"><div class="inspector-heading">EQUIPMENT DETAILS ${badge('Mock values','demo')}</div><div class="inspector-section">${itemDetail(state.selectedItem||'scientist-pen')}<div class="inspector-actions inline-actions">${equipmentOwner(state.selectedItem)?`<button class="btn secondary" data-hero="${equipmentOwner(state.selectedItem).heroId}">Open owning hero</button>`:''}</div></div></aside></div>`;
 }
 function resourceView(){const cost=allCosts(),filtered=sortedFiltered(resources,state.search,x=>`${x.name} ${x.type}`);return `<div class="resource-layout"><div class="resource-summary">${[['Total resource types',resources.length],['Draft resource types',Object.keys(cost).length],['Longest shortfall',`${farmDays(cost).toFixed(1)} days`]].map(([k,v])=>`<div class="summary-tile"><small>${k}</small><strong>${v}</strong></div>`).join('')}</div><section class="panel table-panel full-panel">${toolbar('Search resource...')}${table([{label:'Resource',key:'name'},{label:'Category',key:'type'},{label:'Owned',key:'owned',align:'number'},{label:'Income / day',key:'perDay',align:'number'},{label:'Draft cost',align:'number'},{label:'Missing',align:'number'},{label:'Additional farm days',align:'number'}],filtered.map(x=>`<tr><td><span class="entity-line"><span class="resource-orb" style="--res:${x.color}">${x.icon}</span><strong>${esc(x.name)}</strong></span></td><td>${esc(x.type)}</td><td class="number">${fmt(x.owned)}</td><td class="number positive">+${fmt(x.perDay)}</td><td class="number">${fmt(cost[x.id]||0)}</td><td class="number ${farmGap(x.id,cost[x.id]||0)?'negative':''}">${fmt(farmGap(x.id,cost[x.id]||0))}</td><td class="number">${((farmGap(x.id,cost[x.id]||0))/x.perDay).toFixed(1)} d</td></tr>`))}</section></div>`}
-function battlesView(){const filtered=sortedFiltered(battles.filter(x=>state.battleFilter==='Needs improvement'?x.stars<3:state.battleFilter==='Defeats'?x.result==='Defeat':true),state.search,x=>`${x.name} ${x.mode} ${x.result} ${x.seed}`);return `<div class="split-view"><section class="panel table-panel">${toolbar('Search battle, seed, mode...',`<select class="toolbar-select" id="battle-filter"><option ${state.battleFilter==='Needs improvement'?'selected':''}>Needs improvement</option><option ${state.battleFilter==='Defeats'?'selected':''}>Defeats</option><option ${state.battleFilter==='All'?'selected':''}>All</option></select>`)}${table([{label:'Battle'},{label:'Result',key:'result'},{label:'Stars',key:'stars'},{label:'Recorded'},{label:'Recommended farm',align:'number'},{label:'Seed'}],filtered.map(b=>`<tr data-battle="${b.id}" class="clickable ${state.selectedBattle===b.id?'active-row':''}"><td><strong>${esc(b.name)}</strong><div class="cell-sub">${esc(b.mode)}</div></td><td>${badge(b.result,b.result==='Defeat'?'danger':'success')}</td><td>${stars(b.stars)}</td><td>${esc(b.last)}</td><td class="number">${b.plan?`${farmDays(recipes[b.plan].cost).toFixed(1)} d`:'—'}</td><td class="mono">${b.seed}</td></tr>`))}</section><aside class="inspector">${battleInspector()}</aside></div>`}
+function battlesView(){
+  const filtered=sortedFiltered(battles.filter(x=>state.battleFilter==='Needs improvement'?x.stars<3:state.battleFilter==='Defeats'?x.result==='Defeat':true),state.search,x=>`${x.name} ${x.mode} ${x.result} ${x.seed}`);
+  const rows=filtered.map(b=>`<tr data-battle="${b.id}" class="clickable ${state.selectedBattle===b.id?'active-row':''}">
+    <td><strong>${esc(b.name)}</strong><div class="cell-sub">${esc(b.mode)}</div></td>
+    <td>${badge(b.result,b.result==='Defeat'?'danger':'success')}</td><td>${stars(b.stars)}</td>
+    <td>${esc(b.last)}</td><td class="number">${b.plan?`${farmDays(recipes[b.plan].cost).toFixed(1)} d`:'—'}</td>
+    <td class="mono">${esc(b.seed)}</td>
+    <td class="battle-replay-open"><button type="button" class="battle-replay-icon" data-open-battle-replay="${b.id}" title="Open replay for ${esc(b.name)}" aria-label="Open replay for ${esc(b.name)}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 8 6 4-6 4V8Z"/></svg></button></td>
+  </tr>`);
+  return `<div class="split-view battle-records-view"><section class="panel table-panel">${toolbar('Search battle, seed, mode...',`<select class="toolbar-select" id="battle-filter"><option ${state.battleFilter==='Needs improvement'?'selected':''}>Needs improvement</option><option ${state.battleFilter==='Defeats'?'selected':''}>Defeats</option><option ${state.battleFilter==='All'?'selected':''}>All</option></select>`)}${table([{label:'Battle'},{label:'Result',key:'result'},{label:'Stars',key:'stars'},{label:'Recorded'},{label:'Recommended farm',align:'number'},{label:'Seed'},{label:'Details',width:'64px',align:'battle-replay-heading'}],rows)}</section><aside class="inspector">${battleInspector()}</aside></div>`;
+}
 function battleInspector(){const b=battles.find(x=>x.id===state.selectedBattle),r=b.plan?recipes[b.plan]:null,hero=r?h(r.hero):null;return `<div class="inspector-heading">BATTLE ANALYSIS <span>${badge(b.result,b.result==='Defeat'?'danger':'success')}</span></div><div class="inspector-section battle-top"><h2>${esc(b.name)}</h2><div class="muted">${esc(b.mode)} · Seed ${b.seed}</div><div class="battle-stars">${stars(b.stars)} <span class="muted">${b.stars} / 3 stars</span></div><div class="info-pairs"><span>Saved formation</span><strong>${esc(squad(b.team).name)}</strong><span>Last recorded</span><strong>${esc(b.last)}</strong><span>Target</span><strong>${esc(b.target)}</strong></div></div>${r?`<div class="inspector-section"><div class="section-head"><b>Lowest-cost candidate</b>${badge('Estimate','demo')}</div><div class="recommend-box"><div class="recommend-title">${heroLabel(hero,false)}</div><p>${esc(r.description)}</p><div class="recommend-arrow">Level ${hero.level} → ${r.level} <span>·</span> ${esc(r.suggested)}</div></div></div><div class="inspector-section costs-section"><div class="section-head"><b>Candidate costs</b></div><div class="chip-grid">${costChips(r.cost)}</div><div class="estimate-line"><span>Additional farming</span><strong>${farmDays(r.cost).toFixed(1)} days</strong></div><p class="muted hint">This candidate is illustrative, not a verified 3-star native simulation.</p></div><div class="inspector-actions">${btn('Add changes to draft','applyBattle','primary')}${btn('Open upgrade planner','goPlanner')}</div>`:`<div class="inspector-section"><div class="success-note">✓ This recorded battle already has 3 stars.</div></div>`}`}
 function arenaView(){const list=opponents.filter(x=>state.arenaMode==='All'||x.mode===state.arenaMode).filter(x=>`${x.name} ${x.mode} ${x.traits}`.toLowerCase().includes(state.search.toLowerCase()));const o=opponents.find(x=>x.id===state.selectedOpponent);return `<div class="split-view"><section class="panel table-panel">${toolbar('Find opponent...',`<select id="arena-mode" class="toolbar-select">${['All','Arena','Elite Arena'].map(x=>`<option ${x===state.arenaMode?'selected':''}>${x}</option>`).join('')}</select>`)}${table([{label:'Opponent'},{label:'Rank',align:'number'},{label:'Saved formation'},{label:'Saved win %',align:'number'},{label:'Suggested formation'},{label:'Predicted win %',align:'number'},{label:'Confidence'}],list.map(x=>`<tr class="clickable ${state.selectedOpponent===x.id?'active-row':''}" data-opponent="${x.id}"><td><span class="entity-line"><span class="opponent-emblem">${x.name.split(' ').map(v=>v[0]).join('')}</span><span><strong>${esc(x.name)}</strong><small>${esc(x.mode)} · ${esc(x.traits)}</small></span></span></td><td class="number">#${x.rank}</td><td>${esc(squad(x.current).name)}</td><td class="number ${x.win<70?'negative':''}">${x.win}%</td><td>${esc(squad(x.alternative).name)}</td><td class="number"><strong class="positive">${x.predicted}%</strong> ${x.predicted>x.win?`<small class="positive">+${x.predicted-x.win} pp</small>`:''}</td><td>${badge(x.confidence,x.confidence==='High'?'success':x.confidence==='Low'?'warning':'neutral')}</td></tr>`))}</section><aside class="inspector">${arenaInspector(o)}</aside></div>`}
 function arenaInspector(o){const saved=squad(o.current),candidate=squad(o.alternative);return `<div class="inspector-heading">OPPONENT INTELLIGENCE ${badge(o.mode)}</div><div class="inspector-section"><div class="opponent-profile"><span class="opponent-emblem big">${o.name.split(' ').map(v=>v[0]).join('')}</span><div><h2>${esc(o.name)}</h2><div class="muted">Rank #${o.rank} · ${fmt(o.power)} power</div></div></div><div class="opponent-tags">${badge(o.traits)} ${badge(`${o.confidence} confidence`)}</div><div class="info-pairs"><span>Observed wins</span><strong>${o.record}</strong><span>Saved formation</span><strong>${esc(saved.name)}</strong></div></div><div class="inspector-section"><div class="section-head"><b>Recommended formation</b>${badge('Mock ranking','demo')}</div><div class="comparison"><div><small>Current</small><strong>${o.win}%</strong></div><div class="comparison-arrow">→</div><div><small>Suggested</small><strong class="positive">${o.predicted}%</strong></div></div><div class="squad-name">${esc(candidate.name)} <span>${badge(candidate.tag)}</span></div><div class="squad-portraits">${candidate.heroes.map(id=>`<span title="${esc(h(id).name)}">${portrait(h(id),'squad')}</span>`).join('')}</div><p class="muted hint">Win percentages are static fixture values, not real battle samples or confidence intervals.</p></div><div class="inspector-section"><div class="section-head"><b>Alternatives</b></div><div class="alternative-row"><span>${esc(saved.name)}</span><strong>${o.win}%</strong></div><div class="alternative-row"><span>${esc(candidate.name)}</span><strong class="positive">${o.predicted}%</strong></div></div><div class="inspector-actions">${btn('Use recommended formation','useFormation','primary')}${btn('Inspect roster','goHeroes')}</div>`}
@@ -324,7 +335,7 @@ function heroDialogMarkup(){
   </section></div>`;
 }
 function syncOverlayInert(){
-  const overlay=state.heroDialogOpen||Boolean(equipmentPicker)||Boolean(relicPicker);
+  const overlay=state.heroDialogOpen||Boolean(equipmentPicker)||Boolean(relicPicker)||Boolean(replaySession);
   for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))overlay?el.setAttribute('inert',''):el.removeAttribute('inert');
   const parent=document.querySelector('#hero-modal-root');
   if(parent){if(equipmentPicker||relicPicker)parent.setAttribute('inert','');else parent.removeAttribute('inert');}
@@ -384,7 +395,7 @@ function render(){
   const activeId=activeInHero&&active?.id||'';
   const activeAction=activeInHero&&active?.dataset?.action||'';
   const activeSlot=activeInHero&&active?.dataset?.selectSlot||'';
-  app.innerHTML=shell();syncRecordCount();renderToast();showHeroDialog(scroll);
+  app.innerHTML=shell();syncRecordCount();renderToast();showHeroDialog(scroll);if(replaySession)renderBattleReplayModal();
   if(activeInHero&&state.heroDialogOpen){
     const target=activeId?document.getElementById(activeId):activeAction?document.querySelector(`.hero-detail-dialog [data-action="${activeAction}"]`):activeSlot?document.querySelector(`.hero-detail-dialog [data-select-slot="${activeSlot}"]`):null;
     target?.focus({preventScroll:true});
@@ -580,6 +591,134 @@ function chooseRelicPickerItem(itemId){
   document.querySelector('[data-action="openRelicPicker"]')?.focus();
 }
 
+// Battle Replay UI: synthetic trace adapter only; authoritative contract DESIGN.md §25.
+let replaySession=null, replayFrameHandle=null;
+const replayTimeLabel=n=>`${Math.max(0,Number(n)||0).toFixed(1)}s`;
+function cancelReplayFrame(){if(replayFrameHandle!==null&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(replayFrameHandle);replayFrameHandle=null;}
+function pauseReplay(){if(!replaySession)return;replaySession.playing=false;replaySession.lastTick=null;cancelReplayFrame();updateReplayFrame();}
+function closeBattleReplay({restoreFocus=true}={}){
+  const id=replaySession?.id;
+  cancelReplayFrame();replaySession=null;
+  const root=document.querySelector('#battle-replay-root');if(root)root.innerHTML='';
+  syncOverlayInert();
+  if(restoreFocus&&id)document.querySelector(`[data-open-battle-replay="${id}"]`)?.focus({preventScroll:true});
+}
+function replayBattleScene(trace,snapshot){
+  const active=snapshot.recent.slice(-5);
+  const trails=active.map(event=>{
+    const from=trace.units[event.source],to=trace.units[event.target];
+    if(!from||!to)return '';
+    const color=event.kind==='heal'?'#71e4b8':event.kind==='ability'?'#efc478':'#86bbeb';
+    return `<line x1="${from.initialX}" y1="${from.initialY}" x2="${to.initialX}" y2="${to.initialY}" stroke="${color}" stroke-width=".75" stroke-linecap="round" opacity=".84" class="replay-trail"/>`;
+  }).join('');
+  const units=snapshot.units.map((unit,i)=>{
+    const acted=active.some(ev=>ev.source===i),hit=active.some(ev=>ev.target===i);
+    const wobble=unit.alive?Math.sin(snapshot.time*(i%2?2.4:3.2)+i)*1.15:0;
+    const lunge=acted?(unit.team==='ally'?2.7:-2.7):0;
+    const x=unit.initialX+wobble*.55+lunge,y=unit.initialY+wobble*.65;
+    const hp=Math.max(0,Math.round(unit.hp/unit.maxHp*100));
+    return `<div class="replay-unit ${unit.team} ${unit.alive?'':'is-defeated'} ${acted?'is-attacking':''} ${hit?'is-hit':''}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%" title="${esc(unit.name)} · ${unit.hp} / ${unit.maxHp} HP">
+      <div class="replay-unit-bubble">${esc(unit.short)}</div>
+      <div class="replay-unit-hp"><span style="width:${hp}%"></span></div>
+      <div class="replay-unit-name">${esc(unit.name)}</div>
+    </div>`;
+  }).join('');
+  return `<div class="replay-stage-grid" aria-label="Illustrative animated positions of friendly heroes and synthetic enemies">
+    <div class="replay-stage-half replay-stage-friendly"></div><div class="replay-stage-half replay-stage-hostile"></div>
+    <span class="replay-side-label friendly">YOUR FORMATION</span><span class="replay-side-label hostile">MOCK ENEMIES</span>
+    <div class="replay-center-circle"></div><div class="replay-center-line"></div>
+    <svg class="replay-trails" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${trails}</svg>
+    ${units}
+  </div>`;
+}
+function replayStatsMarkup(snapshot){
+  const summary=[['Allies alive',`${snapshot.ally.alive}/${snapshot.ally.total}`],['Enemy alive',`${snapshot.enemy.alive}/${snapshot.enemy.total}`],['Team damage',fmt(snapshot.ally.damage)],['Damage taken',fmt(snapshot.enemy.damage)],['Healing',fmt(snapshot.ally.healing)],['Ability casts',fmt(snapshot.ally.abilities)]];
+  const rows=snapshot.units.filter(u=>u.team==='ally').map(u=>{
+    const ratio=u.maxHp?Math.round(100*u.hp/u.maxHp):0;
+    return `<tr class="${u.alive?'':'replay-fallen'}"><td><strong>${esc(u.name)}</strong><small>${esc(u.role)}</small></td><td><div class="replay-stat-hp"><span style="width:${ratio}%"></span></div><small>${fmt(u.hp)} / ${fmt(u.maxHp)}</small></td><td class="number">${fmt(u.stats.damage)}</td><td class="number">${fmt(u.stats.taken)}</td><td class="number">${fmt(u.stats.healing)}</td><td class="number">${u.stats.abilities}</td></tr>`;
+  }).join('');
+  return `<div class="replay-summary-grid">${summary.map(([k,v])=>`<div class="replay-summary-cell"><small>${k}</small><strong>${v}</strong></div>`).join('')}</div>
+    <div class="replay-unit-stats-title">Hero contributions <span>At ${replayTimeLabel(snapshot.time)}</span></div>
+    <div class="replay-stats-table-wrap"><table class="replay-stats-table"><thead><tr><th>Hero</th><th>HP</th><th>DMG</th><th>TAKEN</th><th>HEAL</th><th>CASTS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function replayEventsMarkup(trace,snapshot){
+  const visible=snapshot.events.slice(-9).reverse();
+  if(!visible.length)return '<p class="replay-events-empty">Events appear here as the synthetic battle progresses.</p>';
+  return visible.map(e=>{
+    const source=trace.units[e.source],target=trace.units[e.target];
+    const what=e.kind==='heal'?'healed':e.kind==='ability'?'ability hit':'attacked';
+    return `<div class="replay-event ${e.kind}"><span class="replay-event-time">${replayTimeLabel(e.time)}</span><span><b>${esc(source.name)}</b> ${what} <b>${esc(target.name)}</b> <strong>${e.kind==='heal'?'+':'−'}${fmt(e.amount)}</strong>${e.defeated?'<em> · defeated</em>':''}</span></div>`;
+  }).join('');
+}
+function replayModalMarkup(){
+  if(!replaySession)return '';
+  const {id,trace}=replaySession,b=battles.find(x=>x.id===id),s=squad(b.team);
+  const markers=trace.events.filter(e=>e.kind==='ability'||e.kind==='heal'||e.defeated).map(e=>`<i class="replay-event-marker ${e.kind}" title="${replayTimeLabel(e.time)} ${esc(e.kind)}" style="left:${(100*e.time/Math.max(.1,trace.duration)).toFixed(2)}%"></i>`).join('');
+  return `<div class="modal-backdrop battle-replay-backdrop" data-battle-replay-backdrop><section class="battle-replay-dialog" role="dialog" aria-modal="true" aria-labelledby="replay-dialog-title" aria-describedby="replay-dialog-caption" tabindex="-1">
+    <header class="battle-replay-header"><div class="battle-replay-heading"><span class="section-kicker">BATTLE RECORD · SYNTHETIC REPLAY</span><h2 id="replay-dialog-title">${esc(b.name)}</h2><p id="replay-dialog-caption">${esc(b.mode)} · Seed ${esc(b.seed)} · ${esc(s?.name||'Unknown formation')} · Illustrative positions, attacks and stats</p></div>
+    <div class="battle-replay-header-actions">${badge('Mock simulation','demo')}<span class="replay-outcome-pair"><small>Recorded</small>${badge(b.result,b.result==='Defeat'?'danger':'success')}</span><span class="replay-outcome-pair"><small>Simulated</small>${badge(trace.outcome,trace.outcome==='Victory'?'success':'warning')}</span><button type="button" class="hero-dialog-close" data-replay-action="close" aria-label="Close battle replay">×</button></div></header>
+    <div class="battle-replay-scroll"><div class="battle-replay-grid"><div class="battle-replay-primary">
+      <section class="replay-scene-panel"><div class="replay-panel-heading"><strong>Battlefield</strong><span class="muted">Animated illustrative formation · simulated HP</span></div><div id="replay-scene" class="replay-stage" aria-live="off"></div></section>
+      <section class="replay-transport"><div class="replay-controls"><button type="button" class="replay-control-button" data-replay-action="restart" title="Restart" aria-label="Restart replay">↺</button><button type="button" class="replay-control-button step" data-replay-action="back" title="Step back 0.2 seconds" aria-label="Step back">‹</button><button type="button" class="replay-control-button replay-play" data-replay-action="play" aria-label="Play replay">▶ Play</button><button type="button" class="replay-control-button step" data-replay-action="forward" title="Step forward 0.2 seconds" aria-label="Step forward">›</button><label class="replay-speed-label">Speed <select id="replay-speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label></div>
+      <div class="replay-timeline-labels"><strong id="replay-time-text">0.0s</strong><span>of ${replayTimeLabel(trace.duration)}</span></div>
+      <div class="replay-timeline-wrap"><div class="replay-event-track" aria-hidden="true">${markers}</div><input id="replay-time" type="range" min="0" max="${trace.duration}" step="0.1" value="0" aria-label="Replay time" aria-valuetext="0.0 seconds"/></div></section>
+      <section class="replay-events-panel"><div class="replay-panel-heading"><strong>Event timeline</strong><span id="replay-event-count" class="muted">0 events</span></div><div id="replay-event-feed" class="replay-event-feed" aria-label="Events up to selected replay time"></div></section>
+    </div><aside class="replay-analytics"><div class="replay-panel-heading"><strong>Combat analytics</strong>${badge('From trace','demo')}</div><div id="replay-stats" aria-live="off"></div></aside></div></div>
+    <footer class="battle-replay-footer"><span>Local deterministic sample — not native Unity/WASM simulation, real replay coordinates, or verified damage.</span><button type="button" class="btn primary" data-replay-action="close">Close</button></footer>
+  </section></div>`;
+}
+function updateReplayFrame(){
+  if(!replaySession)return;
+  const {trace,time,playing}=replaySession,snapshot=mockReplayAt(trace,time);
+  const scene=document.querySelector('#replay-scene'),stats=document.querySelector('#replay-stats'),feed=document.querySelector('#replay-event-feed');
+  if(scene)scene.innerHTML=replayBattleScene(trace,snapshot);
+  if(stats)stats.innerHTML=replayStatsMarkup(snapshot);
+  if(feed)feed.innerHTML=replayEventsMarkup(trace,snapshot);
+  const text=document.querySelector('#replay-time-text');if(text)text.textContent=replayTimeLabel(time);
+  const slider=document.querySelector('#replay-time');if(slider){slider.value=String(Math.min(trace.duration,time));slider.setAttribute('aria-valuetext',`${replayTimeLabel(time)} of ${replayTimeLabel(trace.duration)}`);slider.style.setProperty('--replay-progress',`${100*time/Math.max(.1,trace.duration)}%`);}
+  const count=document.querySelector('#replay-event-count');if(count)count.textContent=`${snapshot.events.length} / ${trace.events.length} events`;
+  const button=document.querySelector('[data-replay-action="play"]');if(button){button.textContent=playing?'Ⅱ Pause':time>=trace.duration?'↺ Replay':'▶ Play';button.setAttribute('aria-label',playing?'Pause replay':time>=trace.duration?'Restart replay':'Play replay');}
+}
+function renderBattleReplayModal(){
+  const root=document.querySelector('#battle-replay-root');if(!root)return;
+  root.innerHTML=replayModalMarkup();syncOverlayInert();updateReplayFrame();
+}
+function openBattleReplay(battleId){
+  const battle=battles.find(b=>b.id===battleId);if(!battle)return;
+  if(replaySession)closeBattleReplay({restoreFocus:false});
+  const formation=squad(battle.team);if(!formation)return;
+  state.selectedBattle=battleId;state.view='battles';
+  const trace=simulateMockBattle(battle,formation,heroes);
+  replaySession={id:battleId,trace,time:0,speed:1,playing:false,lastTick:null};
+  render();
+  document.querySelector('.battle-replay-dialog')?.focus({preventScroll:true});
+}
+function replayTick(timestamp){
+  replayFrameHandle=null;
+  const s=replaySession;if(!s||!s.playing)return;
+  if(s.lastTick!==null)s.time=Math.min(s.trace.duration,s.time+Math.max(0,Math.min(.12,(timestamp-s.lastTick)/1000))*s.speed);
+  s.lastTick=timestamp;
+  if(s.time>=s.trace.duration){s.time=s.trace.duration;s.playing=false;s.lastTick=null;}
+  updateReplayFrame();
+  if(s.playing&&replaySession===s)replayFrameHandle=requestAnimationFrame(replayTick);
+}
+function replayControl(action){
+  const s=replaySession;if(!s)return;
+  if(action==='close'){closeBattleReplay();return;}
+  if(action==='play'){
+    if(s.playing){pauseReplay();return;}
+    if(s.time>=s.trace.duration)s.time=0;
+    s.playing=true;s.lastTick=null;
+    cancelReplayFrame();
+    if(typeof requestAnimationFrame==='function')replayFrameHandle=requestAnimationFrame(replayTick);
+    updateReplayFrame();return;
+  }
+  if(action==='restart'||action==='back'||action==='forward'){
+    pauseReplay();
+    s.time=action==='restart'?0:Math.min(s.trace.duration,Math.max(0,Math.round((s.time+(action==='back'?-0.2:0.2))*10)/10));
+    updateReplayFrame();
+  }
+}
 function savePlanModal(){const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" data-action="closeModal"><form id="save-form" class="modal" role="dialog" aria-modal="true" aria-label="Save plan"><div class="modal-head"><h2>Save upgrade plan</h2><button type="button" class="icon-button" data-action="closeModal">×</button></div><p>Your current changes will be saved locally in this browser, not applied to the game.</p><label class="field-label" for="plan-name">Plan name</label><input id="plan-name" name="name" required maxlength="60" value="Battle improvements ${new Date().toLocaleDateString('en-GB')}"/><div class="modal-actions"><button type="button" class="btn secondary" data-action="closeModal">Cancel</button><button type="submit" class="btn primary">Save locally</button></div></form></div>`;root.querySelector('#plan-name')?.focus()}
 function act(action){
   if(action.startsWith('go')){goto(({goPlanner:'planner',goArena:'arena',goHeroes:'heroes',goBattles:'battles'})[action]);return}
@@ -597,6 +736,13 @@ function act(action){
   if(action==='optimizeAll'){toast('Candidate formations already ranked in the mock arena table');return}
 }
 document.addEventListener('click',e=>{
+  if(replaySession){
+    const control=e.target.closest('[data-replay-action]');if(control){replayControl(control.dataset.replayAction);return;}
+    if(e.target.hasAttribute('data-battle-replay-backdrop')){closeBattleReplay();return;}
+    return;
+  }
+  const replayButton=e.target.closest('[data-open-battle-replay]');
+  if(replayButton){openBattleReplay(replayButton.dataset.openBattleReplay);return;}
   if(relicPicker){
     const card=e.target.closest('[data-pick-relic]');if(card){chooseRelicPickerItem(card.dataset.pickRelic);return}
     if(e.target.closest('[data-relic-picker-unequip]')){chooseRelicPickerItem(null);return}
@@ -646,6 +792,10 @@ document.addEventListener('click',e=>{
   const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='closeModal'&&action.classList.contains('modal-backdrop')&&e.target!==action)return;act(action.dataset.action)}
 });
 document.addEventListener('input',e=>{
+  if(replaySession&&e.target.id==='replay-time'){
+    replaySession.time=Math.min(replaySession.trace.duration,Math.max(0,Number(e.target.value)));
+    replaySession.lastTick=null;updateReplayFrame();return;
+  }
   if(relicPicker&&e.target.id==='relic-picker-search'){relicPicker.search=e.target.value;renderRelicPickerCards();return}
   if(equipmentPicker&&e.target.id==='picker-search'){equipmentPicker.search=e.target.value;renderPickerCards();return}
   if(e.target.id==='global-search'){
@@ -656,6 +806,7 @@ document.addEventListener('input',e=>{
   if(e.target.id==='item-level'){const label=e.target.closest('.item-upgrade')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${eq(e.target.dataset.itemId)?.maxLevel||''}`;return}
 });
 document.addEventListener('change',e=>{
+  if(replaySession&&e.target.id==='replay-speed'){replaySession.speed=Number(e.target.value)||1;replaySession.lastTick=null;return;}
   if(e.target.id==='hero-level'){changeHero(e.target.dataset.heroId,'level',e.target.value);return}
   if(e.target.id==='item-level'){changeItemLevel(e.target.dataset.itemId,e.target.value);return}
   if(relicPicker&&['relic-picker-type','relic-picker-rarity','relic-picker-assignment','relic-picker-sort'].includes(e.target.id)){relicPicker[e.target.id.replace('relic-picker-','')]=e.target.value;renderRelicPickerCards();return}
@@ -667,6 +818,11 @@ document.addEventListener('change',e=>{
   if(e.target.id==='arena-mode'){state.arenaMode=e.target.value;render()}
 });
 document.addEventListener('keydown',e=>{
+  if(replaySession){
+    if(e.key==='Escape'){e.preventDefault();closeBattleReplay();return;}
+    if(e.key==='Tab'){const dialog=document.querySelector('.battle-replay-dialog');if(dialog)focusInDialog(dialog,e);}
+    return;
+  }
   if(!equipmentPicker&&!relicPicker){
     if(state.heroDialogOpen&&e.key==='Escape'){e.preventDefault();closeHeroDialog();return}
     if(state.heroDialogOpen&&e.key==='Tab'){const dialog=document.querySelector('.hero-detail-dialog');if(dialog){focusInDialog(dialog,e);return}}

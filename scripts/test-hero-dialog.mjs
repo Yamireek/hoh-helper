@@ -1,10 +1,18 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';import vm from 'node:vm';
+import fs from 'node:fs';
+import vm from 'node:vm';
 import {heroes,equipment,equipmentSets,equipmentSlots,resources,squads,opponents,battles,recipes,relics,formatNum} from '../src/mock-data.js';
-const storage=new Map(),app={innerHTML:''},document={getElementById:()=>app,querySelector:()=>null,querySelectorAll:()=>[],createElement:()=>({}),addEventListener:()=>{},activeElement:null};
-const context=vm.createContext({heroes,equipment,equipmentSets,equipmentSlots,resources,squads,opponents,battles,recipes,relics,formatNum,document,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},structuredClone,clearTimeout,setTimeout:()=>0,console});
-vm.runInContext(fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8').replace(/^import .*?from '.\/mock-data.js';\n/,'').replace(/\nrender\(\);\s*$/,''),context);const ev=s=>vm.runInContext(s,context);
-const roster=ev('heroesView()');assert(roster.includes('hero-roster-full')&&roster.includes('Open details'));assert(!roster.includes('<aside class="inspector">'));assert.equal((roster.match(/data-open-hero=/g)||[]).length,heroes.length);
+const storage=new Map();
+const app={innerHTML:''};
+const document={getElementById:()=>app,querySelector:()=>null,querySelectorAll:()=>[],createElement:()=>({}),addEventListener:()=>{},activeElement:null};
+const context=vm.createContext({heroes,equipment,equipmentSets,equipmentSlots,resources,squads,opponents,battles,recipes,relics,formatNum,document,
+  localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},structuredClone,clearTimeout,setTimeout:()=>0,console});
+vm.runInContext(fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8').replace(/^import .*?from '.\/mock-data.js';\n/,'').replace(/^import .*?from '\.\/replay-simulation\.js';\n/,'').replace(/\nrender\(\);\s*$/,''),context);
+const ev=(s)=>vm.runInContext(s,context);
+const roster=ev('heroesView()');
+assert(roster.includes('hero-roster-full')&&roster.includes('Open details'));
+assert(!roster.includes('<aside class="inspector">'),'Heroes must use full-width roster');
+assert.equal((roster.match(/data-open-hero=/g)||[]).length,heroes.length);
 const actionCells=[...roster.matchAll(/<td class="hero-roster-open">(.*?)<\/td>/g)].map(m=>m[1]);
 assert.equal(actionCells.length,heroes.length,'Each hero must have exactly one ordinary action cell');
 for(const cell of actionCells){
@@ -15,8 +23,15 @@ for(const cell of actionCells){
 assert(roster.includes('width:64px'),'Details column must be compact');
 const styles=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 assert(!styles.includes('.hero-roster-full .data-table th:last-child'),'Details column must scroll like regular columns');
-assert(roster.includes('Changed only')&&roster.includes('Draft changes'));assert(ev('shell().includes("hero-modal-root")'));
-ev("openHeroDialog('cleopatra')");assert.equal(ev('state.heroDialogOpen'),true);assert.equal(ev('state.selectedHero'),'cleopatra');assert(ev('heroDialogMarkup().includes("hero-dialog-scroll")'));assert(ev('heroDialogMarkup().includes("Cleopatra")));
+
+assert(roster.includes('Changed only')&&roster.includes('Draft changes'));
+assert(ev('shell().includes("hero-modal-root")'));
+ev("openHeroDialog('cleopatra')");
+assert.equal(ev('state.heroDialogOpen'),true);
+assert.equal(ev('state.selectedHero'),'cleopatra');
+assert(ev('heroDialogMarkup().includes("aria-modal=\\\"true\\\"")'));
+assert(ev('heroDialogMarkup().includes("hero-dialog-scroll")'));
+assert(ev('heroDialogMarkup().includes("Cleopatra")'));
 const heroMarkup=ev('heroDialogMarkup()');
 assert.equal((heroMarkup.match(/id="hero-dialog-title"/g)||[]).length,1);
 assert.equal((heroMarkup.match(/class="portrait large"/g)||[]).length,1,'Only one hero portrait should render');
@@ -26,9 +41,31 @@ assert(heroMarkup.includes('hero-level-card'),'Level editor must be first left c
 assert.equal((heroMarkup.match(/id="hero-level"/g)||[]).length,1,'Exactly one level control');
 assert(heroMarkup.indexOf('hero-level-card')<heroMarkup.indexOf('Base attributes'),'Level editing must precede base stats');
 assert(heroMarkup.includes('<b>Relic</b>')&&!heroMarkup.includes('Hero and relic draft'));
-assert(ev('heroDialogMarkup().includes("Equipment · 5/5 slots")'));assert(ev('heroDialogMarkup().includes("Change relic")'));assert(ev('heroDialogMarkup().includes("Review combined plan")'));
-ev("changeHero('cleopatra','level',186)");assert(ev('heroDialogMarkup().includes("1 changes · EDITED")));
+
+assert(ev('heroDialogMarkup().includes("Equipment · 5/5 slots")'));
+assert(ev('heroDialogMarkup().includes("Change relic")'));
+assert(ev('heroDialogMarkup().includes("Review combined plan")'));
+ev("changeHero('cleopatra','level',186)");
+assert(ev('heroDialogMarkup().includes("1 changes · EDITED")'));
 assert(ev('heroDialogMarkup().includes("Planned level <span>186 / 200")'));
-assert(ev('heroDialogMarkup().includes("Level 186/200")'));ev("changeHero('cleopatra','relic','aegis')");assert(ev('heroDialogMarkup().includes("2 changes · EDITED")'));assert(ev('heroDialogMarkup().includes("Aegis Fragment")'));
-ev('state.heroChangedOnly=true');assert.deepEqual(Array.from(ev('visibleHeroes().map(h=>h.id)')),['cleopatra']);ev("act('resetHero')");assert.equal(ev('state.heroDialogOpen'),true);assert.equal(ev('state.selectedHero'),'cleopatra');assert(ev('heroDialogMarkup().includes("Unchanged")'));assert.equal(ev('visibleHeroes().length'),0);
-ev('closeHeroDialog()');assert.equal(ev('state.heroDialogOpen'),false);ev("openHeroDialog('achilles')");assert.equal(ev('state.selectedHero'),'achilles');ev("act('goPlanner')");assert.equal(ev('state.view'),'planner');assert.equal(ev('state.heroDialogOpen'),false);assert(storage.has('hoh-desktop-prototype-v2'));console.log('Hero dialog full-width roster, draft changes, reset and navigation: OK');
+assert(ev('heroDialogMarkup().includes("Level 186/200")'));
+assert(ev('heroesView().includes("180 →")'));
+ev("changeHero('cleopatra','relic','aegis')");
+assert(ev('heroDialogMarkup().includes("2 changes · EDITED")'));
+assert(ev('heroDialogMarkup().includes("Aegis Fragment")'));
+ev('state.heroChangedOnly=true');
+assert.deepEqual(Array.from(ev('visibleHeroes().map(h=>h.id)')),['cleopatra']);
+ev("act('resetHero')");
+assert.equal(ev('state.heroDialogOpen'),true,'Reset must preserve the parent dialog');
+assert.equal(ev('state.selectedHero'),'cleopatra','Reset must not change edited hero');
+assert(ev('heroDialogMarkup().includes("Unchanged")'));
+assert.equal(ev('visibleHeroes().length'),0);
+ev('closeHeroDialog()');
+assert.equal(ev('state.heroDialogOpen'),false);
+ev("openHeroDialog('achilles')");
+assert.equal(ev('state.selectedHero'),'achilles');
+ev("act('goPlanner')");
+assert.equal(ev('state.view'),'planner');
+assert.equal(ev('state.heroDialogOpen'),false,'Leaving Heroes closes hero dialog');
+assert(storage.has('hoh-desktop-prototype-v2'));
+console.log('Hero dialog full-width roster, correct hero, draft changes, reset, filter and navigation: OK');

@@ -25,13 +25,17 @@ npm run preview
 
 ## Visual previews
 
-The working prototype is available in [`standalone.html`](standalone.html) and the editable sources are in [`src/`](src/). For layout and interaction details, read [`docs/DESIGN.md`](docs/DESIGN.md), especially sections 16 and 17.
+![Changed-only hero roster with before/after comparisons](docs/previews/hero-roster-changed-1440x900.png)
 
-The original desktop screenshots are currently distributed with the downloadable prototype archive, rather than committed to this repository.
+![Filterable equipment card picker dialog](docs/previews/equipment-picker-1440x900.png)
+
+![Equipment inventory and full item stats](docs/previews/equipment-desktop.png)
+
+See also [1920×1080 changed-only roster](docs/previews/hero-roster-changed-1920x1080.png) and [hero equipment details](docs/previews/hero-equipment-details.png). Screenshots illustrate the mock prototype; the equipment picker is documented in §16 and roster change visibility in §17 of `docs/DESIGN.md`. Dark themed scrollbars are used throughout the application.  `docs/DESIGN.md` is authoritative if a screenshot and specification differ.
 
 ## Demo workflows
 
-- **Heroes:** use **Changed only** to show edited heroes, with the roster’s before → after diff summary and a complete comparison in the full-size hero detail dialog. Edited heroes include level and relic changes, slot swaps (both sides of a transfer), and level upgrades on currently equipped items. Click **Open details** in a hero row to inspect its five equipment slots in a spacious dialog. Select a slot and press **Change equipment** to open a desktop-style card picker with search, rarity/set/ownership filters and sorting. Cards display all stats and the current owner; clicking one moves that *unique* item into the local draft, warning when it comes from another hero. Use **Unequip slot** to clear a slot, or **Cancel** / **Esc** to close without changes. The hero dialog shows per-item stats, set bonuses, hero/item levels, relics and draft costs; edits and picker selections keep the dialog open.
+- **Heroes:** use **Changed only** to show edited heroes, with the roster’s before → after diff summary and a complete comparison in the large hero dialog. Edited heroes include level and relic changes, slot swaps (both sides of a transfer), and level upgrades on currently equipped items. Click **Open details** in a hero row to open the large two-column dialog and inspect its five equipment slots. Select a slot and press **Change equipment** to open a desktop-style card picker with search, rarity/set/ownership filters and sorting. Cards display all stats and the current owner; clicking one moves that *unique* item into the local draft, warning when it comes from another hero. Use **Unequip slot** to clear a slot, or **Cancel** / **Esc** to close without changes. The full-size hero dialog continues to show per-item stats, set bonuses, hero/item levels, relics and draft costs; it remains open while you edit and closes when you open the combined plan.
 - **Equipment:** browse 85 unique mock inventory instances, each with multiple flat/percentage stats, rarity, stars, level, assigned owner and active set progress; click a row for full details. **Relics / Resources:** searchable, sortable tables.
 - **Battle records:** filter losses and sub-3-star results, open a record, add its illustrative recommendation to the common draft.
 - **Arena optimizer:** review current opponents, saved lineup, suggested lineup, fixture win percentages and hero portraits. No actual optimization is executed.
@@ -43,32 +47,29 @@ The original desktop screenshots are currently distributed with the downloadable
 
 Mock values are **not** scraped from your game account; probabilities are not measured and recommendations are not tested with the native game engine. This repository intentionally contains no capture system, credentials, API access, in-game click automation, or production optimizer. The planner must not be used for real-game spending decisions without integrating the verified production engine and data.
 
-## Clone this repository
+## GitHub repository setup
 
 ```bash
-git clone https://github.com/Yamireek/hoh-helper.git
-cd hoh-helper
-npm run check
-npm test
-npm run build
-npm run dev
+git init
+git add .
+git commit -m "Create Battle Lab desktop prototype and design specification"
+git branch -M main
+git remote add origin https://github.com/YOUR_ACCOUNT/hoh-desktop-prototype.git
+git push -u origin main
 ```
 
+Create the empty repository on GitHub first, replacing `YOUR_ACCOUNT`. This prototype is a separate repository so it cannot overwrite or regress `hoh-battle-extension`. Later implementation should port the design documented in `docs/DESIGN.md` into the real extension through its own version control workflow.
 
-## Hero details dialog (DESIGN §20)
+## Relic Vault detail inspector
 
-The full-width Heroes roster now provides an **Open details** button on each row. It opens a large desktop dialog with hero attributes, complete before/after changes, all five equipment slots, item/set details, relic picker, and farming costs. The equipment/relic card pickers open above this dialog and return to it on selection or cancel. Draft and saved-plan semantics stay local-only; the prototype never changes in-game data.
+Relics now have a right-hand inspector beside the inventory table, including rarity, stars, level, optional base stats, ability text, cooldown, mock copies, and current draft hero users. The Guardian Lion example uses the visible values in the reference screenshot; other stats are deliberately omitted when not captured. The specification is in `docs/DESIGN.md` §19. This is a local read-only prototype.
 
-See the source-of-truth contract in [docs/DESIGN.md](docs/DESIGN.md) and the mandatory design-first rules in [AGENTS.md](AGENTS.md).
+## Full-size Hero details dialog
 
-### Single hero identity and top-level level editor
+The Heroes roster now uses the entire workspace width and has a per-row **Open details** button. Each button opens a 1160px-wide (responsive) dialog with the hero's stats, complete before/after changes, all five equipment slots, set bonuses, relic selection and farming costs. The equipment/relic card pickers open on top of this dialog. Changes remain hypothetical, update the shared draft, and do not close the hero editor. See `docs/DESIGN.md` §20.
 
-The Heroes dialog renders the portrait, name, faction, role, stars and level once in its fixed header. The planned level slider is the first card in the dialog, immediately above attributes and draft changes; Relic is a separate right-column card. See `docs/DESIGN.md` §22.
+![Hero editor at 1440×900](docs/previews/hero-dialog-1440x900.png)
 
-### Revert individual hero changes
+### Opening standalone.html directly
 
-Each entry under Heroes → Open details → Changes from snapshot has a per-row curved-arrow revert button restoring only the identified change. Unique equipment transfers return the original item without duplication. See `docs/DESIGN.md` §23.
-
-### Opening standalone HTML directly
-
-The built `standalone.html` is fully self-contained. Open it directly from your filesystem, without a server. If startup fails, a visible error panel appears. Builds and CI check its embedded CSS, JavaScript syntax, complete source equality, and initial offline rendering with local storage denied.
+Run `npm run build`, then double-click `standalone.html`. It contains all styles, fixtures, and JavaScript: no server is required. If it fails to launch, it displays a visible fallback instead of an empty dark page. The build and check scripts now verify that the embedded source is complete and runs with local storage unavailable.

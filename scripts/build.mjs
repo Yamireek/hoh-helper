@@ -1,9 +1,12 @@
 import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd();
 const fixtures=fs.readFileSync('src/mock-data.js','utf8').replaceAll('export const ','const ');
-const logic=fs.readFileSync('src/main.js','utf8').replace(/^import .*?from '\.\/mock-data\.js';\n/,'');
+const logic=fs.readFileSync('src/main.js','utf8').replace(/^import .*?from '\.\/mock-data\.js';\n/,'').replace(/^import .*?from '\.\/replay-simulation\.js';\n/,'');
+const replay=fs.readFileSync('src/replay-simulation.js','utf8').replaceAll(/^export function /gm,'function ');
 const css=fs.readFileSync('src/styles.css','utf8');
 const html=fs.readFileSync('index.html','utf8');
-const output=html.replace('<link rel="stylesheet" href="/src/styles.css" />',`<style>${css}</style>`).replace('<script type="module" src="/src/main.js"></script>',`<script>${fixtures}\n${logic.replaceAll('</script>','<\\/script>')}</script>`);
+const output=html.replace('<link rel="stylesheet" href="/src/styles.css" />',`<style>${css}</style>`).replace('<script type="module" src="/src/main.js"></script>',`<script>${fixtures}\n${replay}\n${logic.replaceAll('</script>','<\\/script>')}</script>`);
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',output);
 fs.writeFileSync('standalone.html',output);
