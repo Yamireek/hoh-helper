@@ -31,7 +31,7 @@ The original desktop screenshots are currently distributed with the downloadable
 
 ## Demo workflows
 
-- **Heroes:** use **Changed only** to show edited heroes, with the roster’s before → after diff summary and a complete comparison in the selected hero inspector. Edited heroes include level and relic changes, slot swaps (both sides of a transfer), and level upgrades on currently equipped items. Click a hero and inspect its five equipment slots. Select a slot and press **Change equipment** to open a desktop-style card picker with search, rarity/set/ownership filters and sorting. Cards display all stats and the current owner; clicking one moves that *unique* item into the local draft, warning when it comes from another hero. Use **Unequip slot** to clear a slot, or **Cancel** / **Esc** to close without changes. The inspector continues to show per-item stats, set bonuses, hero/item levels, relics and draft costs.
+- **Heroes:** use **Changed only** to show edited heroes, with the roster’s before → after diff summary and a complete comparison in the full-size hero detail dialog. Edited heroes include level and relic changes, slot swaps (both sides of a transfer), and level upgrades on currently equipped items. Click **Open details** in a hero row to inspect its five equipment slots in a spacious dialog. Select a slot and press **Change equipment** to open a desktop-style card picker with search, rarity/set/ownership filters and sorting. Cards display all stats and the current owner; clicking one moves that *unique* item into the local draft, warning when it comes from another hero. Use **Unequip slot** to clear a slot, or **Cancel** / **Esc** to close without changes. The hero dialog shows per-item stats, set bonuses, hero/item levels, relics and draft costs; edits and picker selections keep the dialog open.
 - **Equipment:** browse 85 unique mock inventory instances, each with multiple flat/percentage stats, rarity, stars, level, assigned owner and active set progress; click a row for full details. **Relics / Resources:** searchable, sortable tables.
 - **Battle records:** filter losses and sub-3-star results, open a record, add its illustrative recommendation to the common draft.
 - **Arena optimizer:** review current opponents, saved lineup, suggested lineup, fixture win percentages and hero portraits. No actual optimization is executed.
@@ -54,3 +54,9 @@ npm run build
 npm run dev
 ```
 
+
+## Hero details dialog (DESIGN §20)
+
+The full-width Heroes roster now provides an **Open details** button on each row. It opens a large desktop dialog with hero attributes, complete before/after changes, all five equipment slots, item/set details, relic picker, and farming costs. The equipment/relic card pickers open above this dialog and return to it on selection or cancel. Draft and saved-plan semantics stay local-only; the prototype never changes in-game data.
+
+See the source-of-truth contract in [docs/DESIGN.md](docs/DESIGN.md) and the mandatory design-first rules in [AGENTS.md](AGENTS.md).
