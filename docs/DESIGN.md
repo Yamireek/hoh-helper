@@ -408,3 +408,28 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 3. Level changes reflect immediately in header, slider value, roster change diff and computed costs; reset reverts level without closing the dialog.
 4. Relic selector, equipment slots and both nested picker dialogs remain available, accessible and functional.
 5. Source/design checks, hero dialog regression tests, build and browser viewport checks pass.
+
+## 23. Revert a single hero draft change (2026-11-11)
+
+**Design-first requirement:** Every entry under **Changes from snapshot** in the large Hero details dialog must have an individually actionable **Revert** icon button. It reverts that one difference to the imported snapshot, leaving unrelated hero edits intact. This extends the change list introduced in §17 and the modal in §§20–22.
+
+### UI presentation
+- Render each change as a compact two-part row: the existing **kind + before → after** summary and, aligned at its right edge, one **small icon-only Undo/Revert button** with a curved-back arrow, a subtle dark border, and a highlighted hover/focus state. Each button is at least 30×30px and belongs visibly to its own row; do not add a wide action column or shift existing text offscreen.
+- Provide a contextual accessible name and native tooltip, such as **Revert Level to 192**, **Revert Weapon to Renaissance Blade**, **Revert Relic to Lens of Insight**, or **Revert Scientist's Pen level to 12**. The icon is decorative and keyboard-focusable through the native button.
+- Show a short descriptive confirmation toast only after successfully applying the revert. The row disappears immediately when the draft matches the snapshot. When the last row disappears, show **No changes in current draft** and switch the header to **Unchanged**. Update the roster's Edited marker, Changed only result count, upgrade costs and farming estimates from the same source of truth, without closing the hero dialog.
+- Reverting one entry does not undo other entries for that hero. The existing **Discard hero changes** button remains available for resetting *all* hero changes.
+
+### Revert semantics and constraints
+- **LEVEL:** restore that hero's original level only. Do not touch relic or equipment.
+- **RELIC:** restore the original relic type, preserving other changes. The mock relic type catalog is shared; no fabricated exclusive ownership.
+- **SLOT:** restore the snapshot item assigned to that hero's named slot; if the snapshot slot was empty, unequip the currently assigned item. Equipment instances are unique: if the original item was transferred to another hero, automatically detach it from the temporary owner when returning it to the original slot. This may update the other hero's change list; do not duplicate equipment. Do not silently reset or discard upgrades to the item itself.
+- **ITEM (equipment upgrade):** restore only that equipment instance's original level, remove its upgrade cost, and leave all assignments unchanged.
+- Revert actions must refer to stable, unambiguous identifiers (kind + slot ID/item ID and hero ID) rather than display labels or unstable row indexes. Reject stale or malformed actions with a neutral message; never revert an unrelated entry. Maintain existing persistence and saved-plan format.
+- Preserve modal and nested equipment/relic picker behavior. After the operation, keep the modal open and keep the internal scroll position as far as possible. Keyboard focus should move to the next available revert button, or the changes-card heading when no entries remain; avoid leaving focus on a removed element.
+
+### Acceptance
+1. Every active change row has its own icon-only revert button with a descriptive title/ARIA label and appropriate hover/focus style.
+2. Reverting level, relic, slot and item-upgrade changes is individually tested; resource costs and changed-only filtering update correctly.
+3. Transferred baseline equipment moves back without duplicates; the former recipient's slot becomes empty and their Edited status updates accordingly.
+4. Reverting a remaining change to baseline removes only its own row, does not reset unrelated changes, and does not dismiss the modal.
+5. No root overflow at 1440×900, 1920×1080 or 900×720. Source/design checks, automated tests, build and keyboard interactions pass.
