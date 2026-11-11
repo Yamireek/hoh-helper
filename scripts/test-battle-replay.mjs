@@ -76,7 +76,24 @@ assert(modal.includes('id="replay-time"')&&modal.includes('data-replay-action="p
 assert(modal.includes('id="replay-stats"')&&modal.includes('id="replay-scene"'));
 assert(!modal.includes('Verified Unity result'));
 assert(ev('replayStatsMarkup(mockReplayAt(replaySession.trace,0)).includes("Team damage")'));
-assert(ev('replayEventsMarkup(replaySession.trace,mockReplayAt(replaySession.trace,0)).includes("Events appear")'));
+const history=ev('replayEventsMarkup(replaySession.trace)');
+const eventTotal=ev('replaySession.trace.events.length');
+assert(history.includes('Battle begins'));
+assert.equal((history.match(/data-event-index=/g)||[]).length,eventTotal+1,'Full trace must remain visible at time zero');
+assert(history.includes('is-future'),'Future events must remain listed');
+assert(history.includes('role="listitem"'));
+assert(modal.indexOf('replay-events-panel')<modal.indexOf('battle-replay-primary'),'Timeline must precede the battlefield');
+const fakeRows=Array.from({length:eventTotal+1},(_,i)=>({dataset:{eventIndex:String(i)},offsetTop:i*52,offsetHeight:50,attributes:{},classes:new Set(),classList:{toggle(name,on){if(on)fakeRows[i].classes.add(name);else fakeRows[i].classes.delete(name)}},setAttribute(name,value){fakeRows[i].attributes[name]=value}}));
+const fakeFeed={dataset:{},clientHeight:200,scrollTop:0,querySelectorAll:()=>fakeRows,querySelector:selector=>{const i=Number(selector.match(/[0-9]+/)?.[0]);return fakeRows[i]||null;}};
+context.fakeFeed=fakeFeed;
+ev('updateReplayEventTimeline(fakeFeed,45)');
+assert.equal(fakeRows[45].attributes['aria-current'],'true');
+assert.equal(fakeRows[46].classes.has('is-future'),true);
+assert(fakeFeed.scrollTop>0,'Timeline must scroll to current event');
+ev('updateReplayEventTimeline(fakeFeed,0)');
+assert.equal(fakeRows[0].attributes['aria-current'],'true');
+assert.equal(fakeFeed.scrollTop,0,'Timeline should scroll back to beginning');
+
 ev("replayControl('play')");
 assert.equal(ev('replaySession.playing'),true);
 ev('replayTick(1000)');ev('replayTick(1040)');

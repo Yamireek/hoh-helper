@@ -641,15 +641,37 @@ function replayStatsMarkup(snapshot){
     <div class="replay-unit-stats-title">Hero contributions <span>At ${replayTimeLabel(snapshot.time)}</span></div>
     <div class="replay-stats-table-wrap"><table class="replay-stats-table"><thead><tr><th>Hero</th><th>HP</th><th>DMG</th><th>TAKEN</th><th>HEAL</th><th>CASTS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-function replayEventsMarkup(trace,snapshot){
-  const visible=snapshot.events.slice(-9).reverse();
-  if(!visible.length)return '<p class="replay-events-empty">Events appear here as the synthetic battle progresses.</p>';
-  return visible.map(e=>{
+function replayEventsMarkup(trace){
+  // Keep the whole trace mounted. The playhead only changes row states and scroll position.
+  const beginning='<div class="replay-event replay-event-start is-current" data-event-index="0" role="listitem" aria-current="true"><span class="replay-event-time">0.0s</span><span><b>Battle begins</b><small>All events below are synthetic simulation events.</small></span></div>';
+  return beginning+trace.events.map((e,i)=>{
     const source=trace.units[e.source],target=trace.units[e.target];
     const what=e.kind==='heal'?'healed':e.kind==='ability'?'ability hit':'attacked';
-    return `<div class="replay-event ${e.kind}"><span class="replay-event-time">${replayTimeLabel(e.time)}</span><span><b>${esc(source.name)}</b> ${what} <b>${esc(target.name)}</b> <strong>${e.kind==='heal'?'+':'−'}${fmt(e.amount)}</strong>${e.defeated?'<em> · defeated</em>':''}</span></div>`;
+    return `<div class="replay-event ${e.kind} is-future" data-event-index="${i+1}" role="listitem" aria-current="false"><span class="replay-event-time">${replayTimeLabel(e.time)}</span><span><b>${esc(source.name)}</b> ${what} <b>${esc(target.name)}</b> <strong>${e.kind==='heal'?'+':'−'}${fmt(e.amount)}</strong>${e.ability?`<small>${esc(e.ability)}</small>`:''}${e.defeated?'<em> · defeated</em>':''}</span></div>`;
   }).join('');
 }
+function updateReplayEventTimeline(feed, activeIndex){
+  if(!feed||!replaySession)return;
+  if(replaySession.activeEventIndex===activeIndex&&feed.dataset.timelineReady==='true')return;
+  const rows=feed.querySelectorAll('[data-event-index]');
+  for(const row of rows){
+    const index=Number(row.dataset.eventIndex);
+    const current=index===activeIndex;
+    row.classList.toggle('is-current',current);
+    row.classList.toggle('is-future',index>activeIndex);
+    row.classList.toggle('is-past',index<activeIndex);
+    row.setAttribute('aria-current',current?'true':'false');
+  }
+  const active=feed.querySelector(`[data-event-index="${activeIndex}"]`);
+  if(active&&feed.clientHeight){
+    // Scrolling just this pane never moves the fixed header, battlefield or analytics.
+    const desired=active.offsetTop-feed.clientHeight/2+active.offsetHeight/2;
+    feed.scrollTop=Math.max(0,desired);
+  }
+  feed.dataset.timelineReady='true';
+  replaySession.activeEventIndex=activeIndex;
+}
+
 function replayModalMarkup(){
   if(!replaySession)return '';
   const {id,trace}=replaySession,b=battles.find(x=>x.id===id),s=squad(b.team);
@@ -657,12 +679,13 @@ function replayModalMarkup(){
   return `<div class="modal-backdrop battle-replay-backdrop" data-battle-replay-backdrop><section class="battle-replay-dialog" role="dialog" aria-modal="true" aria-labelledby="replay-dialog-title" aria-describedby="replay-dialog-caption" tabindex="-1">
     <header class="battle-replay-header"><div class="battle-replay-heading"><span class="section-kicker">BATTLE RECORD · SYNTHETIC REPLAY</span><h2 id="replay-dialog-title">${esc(b.name)}</h2><p id="replay-dialog-caption">${esc(b.mode)} · Seed ${esc(b.seed)} · ${esc(s?.name||'Unknown formation')} · Illustrative positions, attacks and stats</p></div>
     <div class="battle-replay-header-actions">${badge('Mock simulation','demo')}<span class="replay-outcome-pair"><small>Recorded</small>${badge(b.result,b.result==='Defeat'?'danger':'success')}</span><span class="replay-outcome-pair"><small>Simulated</small>${badge(trace.outcome,trace.outcome==='Victory'?'success':'warning')}</span><button type="button" class="hero-dialog-close" data-replay-action="close" aria-label="Close battle replay">×</button></div></header>
-    <div class="battle-replay-scroll"><div class="battle-replay-grid"><div class="battle-replay-primary">
+    <div class="battle-replay-scroll"><div class="battle-replay-grid">
+    <section class="replay-events-panel"><div class="replay-panel-heading"><strong>Event timeline</strong><span id="replay-event-count" class="muted">0 / ${trace.events.length} events</span></div><div id="replay-event-feed" class="replay-event-feed" role="list" aria-label="All simulated battle events">${replayEventsMarkup(trace)}</div></section>
+    <div class="battle-replay-primary">
       <section class="replay-scene-panel"><div class="replay-panel-heading"><strong>Battlefield</strong><span class="muted">Animated illustrative formation · simulated HP</span></div><div id="replay-scene" class="replay-stage" aria-live="off"></div></section>
       <section class="replay-transport"><div class="replay-controls"><button type="button" class="replay-control-button" data-replay-action="restart" title="Restart" aria-label="Restart replay">↺</button><button type="button" class="replay-control-button step" data-replay-action="back" title="Step back 0.2 seconds" aria-label="Step back">‹</button><button type="button" class="replay-control-button replay-play" data-replay-action="play" aria-label="Play replay">▶ Play</button><button type="button" class="replay-control-button step" data-replay-action="forward" title="Step forward 0.2 seconds" aria-label="Step forward">›</button><label class="replay-speed-label">Speed <select id="replay-speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label></div>
       <div class="replay-timeline-labels"><strong id="replay-time-text">0.0s</strong><span>of ${replayTimeLabel(trace.duration)}</span></div>
       <div class="replay-timeline-wrap"><div class="replay-event-track" aria-hidden="true">${markers}</div><input id="replay-time" type="range" min="0" max="${trace.duration}" step="0.1" value="0" aria-label="Replay time" aria-valuetext="0.0 seconds"/></div></section>
-      <section class="replay-events-panel"><div class="replay-panel-heading"><strong>Event timeline</strong><span id="replay-event-count" class="muted">0 events</span></div><div id="replay-event-feed" class="replay-event-feed" aria-label="Events up to selected replay time"></div></section>
     </div><aside class="replay-analytics"><div class="replay-panel-heading"><strong>Combat analytics</strong>${badge('From trace','demo')}</div><div id="replay-stats" aria-live="off"></div></aside></div></div>
     <footer class="battle-replay-footer"><span>Local deterministic sample — not native Unity/WASM simulation, real replay coordinates, or verified damage.</span><button type="button" class="btn primary" data-replay-action="close">Close</button></footer>
   </section></div>`;
@@ -673,7 +696,7 @@ function updateReplayFrame(){
   const scene=document.querySelector('#replay-scene'),stats=document.querySelector('#replay-stats'),feed=document.querySelector('#replay-event-feed');
   if(scene)scene.innerHTML=replayBattleScene(trace,snapshot);
   if(stats)stats.innerHTML=replayStatsMarkup(snapshot);
-  if(feed)feed.innerHTML=replayEventsMarkup(trace,snapshot);
+  updateReplayEventTimeline(feed,snapshot.events.length);
   const text=document.querySelector('#replay-time-text');if(text)text.textContent=replayTimeLabel(time);
   const slider=document.querySelector('#replay-time');if(slider){slider.value=String(Math.min(trace.duration,time));slider.setAttribute('aria-valuetext',`${replayTimeLabel(time)} of ${replayTimeLabel(trace.duration)}`);slider.style.setProperty('--replay-progress',`${100*time/Math.max(.1,trace.duration)}%`);}
   const count=document.querySelector('#replay-event-count');if(count)count.textContent=`${snapshot.events.length} / ${trace.events.length} events`;
@@ -681,7 +704,9 @@ function updateReplayFrame(){
 }
 function renderBattleReplayModal(){
   const root=document.querySelector('#battle-replay-root');if(!root)return;
-  root.innerHTML=replayModalMarkup();syncOverlayInert();updateReplayFrame();
+  root.innerHTML=replayModalMarkup();
+  if(replaySession)replaySession.activeEventIndex=null;
+  syncOverlayInert();updateReplayFrame();
 }
 function openBattleReplay(battleId){
   const battle=battles.find(b=>b.id===battleId);if(!battle)return;

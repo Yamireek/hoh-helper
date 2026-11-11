@@ -73,3 +73,7 @@ The Heroes roster now uses the entire workspace width and has a per-row **Open d
 ### Opening standalone.html directly
 
 Run `npm run build`, then double-click `standalone.html`. It contains all styles, fixtures, and JavaScript: no server is required. If it fails to launch, it displays a visible fallback instead of an empty dark page. The build and check scripts now verify that the embedded source is complete and runs with local storage unavailable.
+
+### Wide battle replay and complete event log
+
+The **Battle records → Details** modal now fills almost the entire desktop viewport. On desktop its Event timeline is **left** of the animated battlefield, with simulation statistics on the right. All synthetic trace events stay in the scrollable timeline (including upcoming events); playback and seeking highlight and auto-scroll to the corresponding event. No entries are truncated or inserted/removed while scrubbing. This is illustrative mock simulation, not actual native game data. See `docs/DESIGN.md` §26.

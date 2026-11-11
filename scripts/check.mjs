@@ -44,4 +44,8 @@ assert(code.includes('openBattleReplay')&&code.includes('replayModalMarkup')&&co
 assert(code.includes('mockReplayAt')&&code.includes('simulateMockBattle'),'Replay is required to use the simulator trace');
 assert(style.includes('.battle-replay-dialog')&&style.includes('.battle-replay-icon'),'Replay modal/column styles missing');
 assert(!style.includes('.battle-records-view .data-table th:last-child'),'Battle details column must not be pinned');
+assert(doc.includes('## 26. Wide battle replay with full left-hand event timeline'),'Full event timeline design contract missing');
+assert(code.includes('updateReplayEventTimeline')&&code.includes('data-event-index'),'Full timeline playback tracking missing');
+assert(!code.includes('snapshot.events.slice(-9)'),'Recent-only event feed must not truncate events');
+assert(style.includes('grid-template-columns:minmax(252px,300px)'),'Wide three-column replay layout missing');
 console.log('Prototype source and design contract: OK');
