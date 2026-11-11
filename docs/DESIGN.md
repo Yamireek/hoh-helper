@@ -376,3 +376,16 @@ The reference game screenshots show **five pieces equipped simultaneously** per 
 4. Nested pickers preserve their existing search, filtering, focus and Escape behavior; no backdrop click-through; parent remains open.
 5. Verify at 1440×900, 1920×1080 and narrow viewport without page overflow.
 6. Run check, test, build, add dialog-specific automated regression tests.
+
+## 21. Hero roster details action uses a compact table icon (2026-11-11)
+
+**Supersedes only the presentation of the Heroes roster Details column in §20.** The hero dialog and its behavior stay unchanged.
+
+- **Details is an ordinary table column**, not pinned to the right. Remove `position: sticky`, special background, left divider, extra header emphasis, or otherwise visually separated last-column styling from the Heroes roster.
+- The **Details** header uses the same typography, color, background and cell dividers as every other column. Keep a narrow width (approximately 56–64px) and center-align both heading and cells.
+- Every row has a **single compact icon-only button** (approximately 30–32px square) to open that hero's details dialog. Use a clear open-in-dialog/expand symbol (e.g., a square with an outward arrow), neutral surface, subtle border, and consistent hover/focus states. No visible "Open details" text, chevron suffix, oversized colored pill, or extra row-height.
+- Each icon button must have an accessible name such as `aria-label="Open details for Leonardo da Vinci"`, an explanatory native `title` tooltip, and a visible keyboard focus ring. The icon is decorative (`aria-hidden="true"`).
+- Preserve the existing `data-open-hero` handler and focus-return behavior, including after the Changed only filter, sorting and navigation. Clicking the button still opens the correct hero in the large dialog.
+- Confirm the actions column scrolls horizontally exactly like the other columns at narrower widths, does not overlap adjacent data, and does not change the row selection behavior. No outer-page overflow.
+
+**Regression checks:** tests must require icon-only button markup and accessibility labels, assert the absence of pinned-last-column CSS, and retain hero-dialog interaction and viewport tests.
