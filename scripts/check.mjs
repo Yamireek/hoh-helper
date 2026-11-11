@@ -10,4 +10,7 @@ assert(doc.includes('primary source of truth'),'Design document contract require
 assert(agents.includes('Mandatory design-first UI workflow'),'Design-first workflow required');
 assert(code.includes('heroDiff')&&code.includes('hero-changed-only'),'Changed-roster features required');
 assert(code.includes('filteredPickerItems')&&code.includes('choosePickerItem'),'Equipment picker features required');
+assert(doc.includes('## 18. Relic card-picker dialog'),'Relic picker must be documented before UI');
+assert(code.includes('filteredRelicItems')&&code.includes('chooseRelicPickerItem'),'Relic picker logic is required');
+assert(!code.includes('<select id="hero-relic"'),'Native relic selector is forbidden');
 console.log('Source and design checks: OK');

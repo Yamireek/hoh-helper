@@ -145,6 +145,29 @@
 .hero-filter-empty strong{font-size:14px;color:#e1ebf0}
 .hero-filter-empty p{color:#849bac;font-size:11px;line-height:1.5;margin:0}
 @media(max-width:1250px){.hero-roster-panel .table-toolbar{padding:0 9px;gap:7px}.changed-only-control{padding:6px;gap:5px}.hero-roster-panel .search-box{max-width:38%}}
+
+
+/* Relic picker — docs/DESIGN.md §18; shares equipment modal shell and grid. */
+.relic-assignment{padding:8px 0 2px}
+.relic-assigned-card{display:flex;gap:11px;align-items:flex-start;min-width:0;margin-top:10px;padding:12px;border:1px solid #35485c;border-radius:8px;background:#162638}
+.relic-assigned-icon,.relic-card-art{display:grid;place-items:center;flex-shrink:0;border-radius:8px;border:1px solid #725e9f;background:linear-gradient(145deg,#59457b,#2d3258);color:#e0ceff}
+.relic-assigned-icon{width:42px;height:42px;font-size:24px}
+.relic-assigned-card>div{min-width:0;display:flex;flex-direction:column;gap:5px}
+.relic-assigned-card strong{font-size:12px;color:#e1eaf8}
+.relic-assigned-card small{font-size:10px;color:#9cb2c9}
+.relic-assigned-card div>span{font-size:11px;line-height:1.5;color:#c5d8ea}
+.relic-assigned-empty{padding:16px 8px;color:#8fa5b8;font-size:11px}
+.relic-card-art{width:50px;height:52px;font-size:27px}
+.relic-card-art.legendary{border-color:#b18a49;background:linear-gradient(145deg,#846032,#34344b);color:#ffdfa0}
+.relic-card-art.epic{border-color:#8b6cba;background:linear-gradient(145deg,#62478c,#27375a)}
+.relic-card-art.rare{border-color:#4b84a2;background:linear-gradient(145deg,#316789,#263d52)}
+.relic-card-type{color:#9dc9d4;font-size:10px}
+.relic-card-effect{padding:11px;border-radius:6px;background:#101e2d;border:1px solid #304256;display:flex;flex-direction:column;gap:6px;min-height:75px}
+.relic-card-effect span{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#88a7be;font-weight:700}
+.relic-card-effect strong{font-size:12px;line-height:1.5;color:#d5e3f3}
+.relic-card-meta{display:flex;justify-content:space-between;align-items:center;color:#93a9bc;font-size:10px}
+.relic-card-meta b{color:#e7d29f;font-size:12px}
+.relic-picker-card .picker-card-owner{margin-top:auto}
 </style>
 </head>
 <body>
@@ -489,7 +512,7 @@ function heroInspector(){
   ${activeSets.map(set=>`<div class="set-inline ${set.count>=set.required?'active':''}"><b>${esc(set.name)} ${set.count}/${set.required}</b><span>${set.bonuses.map(x=>`${esc(x.label)} +${x.value}%`).join(', ')} ${set.count>=set.required?'active':'inactive'}</span></div>`).join('')}
   <div class="slot-assignment-head"><div><div class="field-label">${esc(selectedSlot.label)} assignment</div><div class="assignment-summary">${selectedId?esc(eq(selectedId)?.name):'No equipment assigned'}</div></div><button type="button" class="btn primary picker-launch" data-action="openEquipmentPicker">${selectedId?'Change equipment':'Equip item'} <span aria-hidden="true">▦</span></button></div>
   ${selectedId?itemDetail(selectedId):'<div class="empty-note">Select an item to see its individual stats and set bonus.</div>'}
-  </div><div class="inspector-section"><div class="section-head"><b>Hero and relic draft</b></div><label class="field-label" for="hero-level">Hero level <span>${level} / ${hero.max}</span></label><input id="hero-level" type="range" min="${hero.level}" max="${hero.max}" step="1" value="${level}" data-hero-id="${hero.id}"/><div class="range-labels"><span>Current ${hero.level}</span><span>Cap ${hero.max}</span></div><label class="field-label" for="hero-relic">Relic</label><select id="hero-relic" data-hero-id="${hero.id}"><option value="">None</option>${relics.map(item=>`<option value="${item.id}" ${edited.relic===item.id?'selected':''}>${esc(item.name)}</option>`).join('')}</select></div>
+  </div><div class="inspector-section"><div class="section-head"><b>Hero and relic draft</b></div><label class="field-label" for="hero-level">Hero level <span>${level} / ${hero.max}</span></label><input id="hero-level" type="range" min="${hero.level}" max="${hero.max}" step="1" value="${level}" data-hero-id="${hero.id}"/><div class="range-labels"><span>Current ${hero.level}</span><span>Cap ${hero.max}</span></div><div class="relic-assignment"><div class="slot-assignment-head"><div><div class="field-label">Equipped relic</div><div class="assignment-summary">${esc(rel(edited.relic)?.name||'Empty relic slot')}</div></div><button type="button" class="btn primary picker-launch" data-action="openRelicPicker">${edited.relic?'Change relic':'Equip relic'} <span aria-hidden="true">◇</span></button></div>${edited.relic?`<div class="relic-assigned-card"><span class="relic-assigned-icon">${esc(rel(edited.relic)?.icon||'◇')}</span><div><strong>${esc(rel(edited.relic)?.name||'Unknown relic')}</strong><small>${esc(rel(edited.relic)?.rarity||'')} · ${esc(rel(edited.relic)?.type||'')} · Lv ${rel(edited.relic)?.level||0}</small><span>${esc(rel(edited.relic)?.effect||'')}</span></div></div>`:'<div class="relic-assigned-empty">No relic equipped in the current draft.</div>'}</div></div>
   <div class="inspector-section costs-section"><div class="section-head"><b>Incremental hero cost</b></div><div class="chip-grid">${costChips(cost)}</div><div class="estimate-line"><span>Whole draft farm shortfall</span><strong>${farmDays(allCosts()).toFixed(1)} days</strong></div><p class="muted hint">Gear swaps cost 0 in this mock; unique item upgrades are included in the whole plan.</p></div>
   <div class="inspector-actions">${btn('Review combined plan','goPlanner','primary')}${btn('Discard this hero changes','resetHero')}</div>`;
 }
@@ -639,6 +662,89 @@ function choosePickerItem(itemId){
   document.querySelector('[data-action="openEquipmentPicker"]')?.focus();
 }
 
+// Relic picker — docs/DESIGN.md §18. Relic fixtures are shared types, not unique instances.
+let relicPicker=null;
+const relicUsers=id=>heroes.filter(hero=>currentHero(hero.id).relic===id);
+function filteredRelicItems(){
+  if(!relicPicker)return [];
+  const p=relicPicker,q=p.search.trim().toLocaleLowerCase();
+  const rarityRank={'Legendary':4,'Epic':3,'Rare':2,'Common':1};
+  return relics.filter(item=>{
+    const users=relicUsers(item.id),names=users.map(hero=>hero.name);
+    const haystack=[item.name,item.effect,item.type,item.rarity,...names].join(' ').toLocaleLowerCase();
+    if(q&&!haystack.includes(q))return false;
+    if(p.type!=='All'&&item.type!==p.type)return false;
+    if(p.rarity!=='All'&&item.rarity!==p.rarity)return false;
+    if(p.assignment==='Equipped by this hero'&&!users.some(x=>x.id===p.heroId))return false;
+    if(p.assignment==='Equipped by others'&&!users.some(x=>x.id!==p.heroId))return false;
+    if(p.assignment==='Unassigned'&&users.length)return false;
+    return true;
+  }).sort((a,b)=>{
+    if(p.sort==='Name A–Z')return a.name.localeCompare(b.name);
+    if(p.sort==='Rarity')return (rarityRank[b.rarity]||0)-(rarityRank[a.rarity]||0)||b.level-a.level||a.name.localeCompare(b.name);
+    return b.level-a.level||a.name.localeCompare(b.name);
+  });
+}
+function relicPickerCard(item){
+  const p=relicPicker,users=relicUsers(item.id),current=currentHero(p.heroId).relic===item.id;
+  const owners=users.length?`Equipped by ${users.map(hero=>hero.name).join(', ')}`:'Unassigned';
+  return `<button type="button" class="picker-card relic-picker-card ${current?'is-equipped':''}" data-pick-relic="${esc(item.id)}" aria-label="Choose relic ${esc(item.name)}">
+    <div class="picker-card-header"><span class="relic-card-art ${esc(item.rarity.toLowerCase())}">${esc(item.icon)}</span><span class="picker-card-identity"><strong>${esc(item.name)}</strong><small>${esc(item.rarity)} · Lv ${item.level}</small><span class="relic-card-type">${esc(item.type)}</span></span>${current?'<span class="picker-current">Equipped</span>':''}</div>
+    <div class="relic-card-effect"><span>Effect</span><strong>${esc(item.effect)}</strong></div>
+    <div class="relic-card-meta"><span>Mock copies</span><b>${item.charges}</b></div>
+    <div class="picker-card-owner"><span aria-hidden="true">◇</span><span>${esc(owners)}</span></div>
+  </button>`;
+}
+function renderRelicPickerCards(){
+  if(!relicPicker)return;
+  const list=filteredRelicItems(),count=document.querySelector('#relic-picker-count'),grid=document.querySelector('#relic-picker-grid');
+  if(count)count.textContent=`${list.length} matching · ${relics.length} relic types`;
+  if(grid)grid.innerHTML=list.length?list.map(relicPickerCard).join(''):`<div class="picker-empty"><strong>No matching relics</strong><p>Try different search terms or filters.</p><button class="btn secondary" type="button" data-relic-picker-clear>Clear filters</button></div>`;
+}
+function openRelicPicker(launcher){
+  if(state.view!=='heroes')return;
+  const hero=h(state.selectedHero);
+  pickerLauncher=launcher||null;
+  relicPicker={heroId:hero.id,search:'',type:'All',rarity:'All',assignment:'All',sort:'Highest level'};
+  const select=(id,label,items)=>`<label class="picker-filter"><span>${label}</span><select id="${id}" aria-label="${label}">${items.map(([value,text])=>`<option value="${esc(value)}">${esc(text)}</option>`).join('')}</select></label>`;
+  const types=[...new Set(relics.map(x=>x.type))].sort();
+  const rarities=[...new Set(relics.map(x=>x.rarity))];
+  const assignmentOptions=['All','Equipped by this hero','Equipped by others','Unassigned'];
+  const html=`<div class="modal-backdrop picker-backdrop" data-relic-picker-backdrop><section class="equipment-picker relic-picker" role="dialog" aria-modal="true" aria-labelledby="relic-picker-title" aria-describedby="relic-picker-subtitle" tabindex="-1">
+    <div class="picker-heading"><div><span class="section-kicker">RELIC VAULT · MOCK DATA</span><h2 id="relic-picker-title">Choose relic</h2><p id="relic-picker-subtitle">For ${esc(hero.name)} · mock relic types · local draft only</p></div><button type="button" class="picker-close" data-relic-picker-close aria-label="Close relic picker">×</button></div>
+    <div class="picker-toolbar"><label class="picker-search"><span aria-hidden="true">⌕</span><input id="relic-picker-search" type="search" placeholder="Search relic, effect, type or hero..." aria-label="Search relics" autocomplete="off"></label>
+      ${select('relic-picker-type','Type',[['All','All types'],...types.map(x=>[x,x])])}
+      ${select('relic-picker-rarity','Rarity',[['All','All rarities'],...rarities.map(x=>[x,x])])}
+      ${select('relic-picker-assignment','Assignment',assignmentOptions.map(x=>[x,x]))}
+      ${select('relic-picker-sort','Sort',[['Highest level','Highest level'],['Name A–Z','Name A–Z'],['Rarity','Rarity']])}
+    </div>
+    <div class="picker-subheading"><strong>Relics in collection</strong><span id="relic-picker-count" aria-live="polite"></span></div>
+    <div id="relic-picker-grid" class="picker-grid-scroll" tabindex="0" aria-label="Relic cards"></div>
+    <div class="picker-footer"><div class="picker-footer-hint">This mock lists relic types, not individual items. Choosing one changes only this hero's local draft.</div><button type="button" class="btn secondary" data-relic-picker-unequip ${currentHero(hero.id).relic?'':'disabled'}>Unequip relic</button><button type="button" class="btn secondary" data-relic-picker-close>Cancel</button></div>
+  </section></div>`;
+  document.querySelector('#modal-root').innerHTML=html;
+  for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))el.setAttribute('inert','');
+  renderRelicPickerCards();
+  document.querySelector('#relic-picker-search')?.focus();
+}
+function closeRelicPicker(){
+  if(!relicPicker)return;
+  relicPicker=null;
+  document.querySelector('#modal-root').innerHTML='';
+  for(const el of document.querySelectorAll('.topbar,.sidebar,.workspace,.statusbar'))el.removeAttribute('inert');
+  const restore=pickerLauncher?.isConnected?pickerLauncher:document.querySelector('[data-action="openRelicPicker"]');
+  pickerLauncher=null;
+  restore?.focus();
+}
+function chooseRelicPickerItem(itemId){
+  if(!relicPicker)return;
+  const {heroId}=relicPicker;
+  if(itemId!==null&&!relics.some(x=>x.id===itemId))return;
+  closeRelicPicker();
+  changeHero(heroId,'relic',itemId||'');
+  document.querySelector('[data-action="openRelicPicker"]')?.focus();
+}
+
 function savePlanModal(){const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" data-action="closeModal"><form id="save-form" class="modal" role="dialog" aria-modal="true" aria-label="Save plan"><div class="modal-head"><h2>Save upgrade plan</h2><button type="button" class="icon-button" data-action="closeModal">×</button></div><p>Your current changes will be saved locally in this browser, not applied to the game.</p><label class="field-label" for="plan-name">Plan name</label><input id="plan-name" name="name" required maxlength="60" value="Battle improvements ${new Date().toLocaleDateString('en-GB')}"/><div class="modal-actions"><button type="button" class="btn secondary" data-action="closeModal">Cancel</button><button type="submit" class="btn primary">Save locally</button></div></form></div>`;root.querySelector('#plan-name')?.focus()}
 function act(action){
   if(action.startsWith('go')){goto(({goPlanner:'planner',goArena:'arena',goHeroes:'heroes',goBattles:'battles'})[action]);return}
@@ -647,6 +753,7 @@ function act(action){
   if(action==='resetChanges'){state.changes={};state.assignments={};state.itemLevels={};saveDraft();render();toast('Draft cleared');return}
   if(action==='resetAll'){localStorage.removeItem(STORAGE);state.changes={};state.assignments={};state.itemLevels={};state.plans=[];render();toast('Demo reset');return}
   if(action==='openEquipmentPicker'){openEquipmentPicker(document.querySelector('[data-action="openEquipmentPicker"]'));return}
+  if(action==='openRelicPicker'){openRelicPicker(document.querySelector('[data-action="openRelicPicker"]'));return}
   if(action==='savePlan'){savePlanModal();return}
   if(action==='closeModal'){document.querySelector('#modal-root').innerHTML='';return}
   if(action==='applyBattle'){applyRecipe(state.selectedBattle);return}
@@ -654,6 +761,13 @@ function act(action){
   if(action==='optimizeAll'){toast('Candidate formations already ranked in the mock arena table');return}
 }
 document.addEventListener('click',e=>{
+  if(relicPicker){
+    const card=e.target.closest('[data-pick-relic]');if(card){chooseRelicPickerItem(card.dataset.pickRelic);return}
+    if(e.target.closest('[data-relic-picker-unequip]')){chooseRelicPickerItem(null);return}
+    if(e.target.closest('[data-relic-picker-close]')||e.target.hasAttribute('data-relic-picker-backdrop')){closeRelicPicker();return}
+    if(e.target.closest('[data-relic-picker-clear]')){Object.assign(relicPicker,{search:'',type:'All',rarity:'All',assignment:'All',sort:'Highest level'});document.querySelector('#relic-picker-search').value='';for(const field of ['type','rarity','assignment','sort'])document.querySelector('#relic-picker-'+field).value=relicPicker[field];renderRelicPickerCards();document.querySelector('#relic-picker-search')?.focus();return}
+    return;
+  }
   if(equipmentPicker){
     const card=e.target.closest('[data-pick-item]');if(card){choosePickerItem(card.dataset.pickItem);return}
     if(e.target.closest('[data-picker-unequip]')){choosePickerItem(null);return}
@@ -675,6 +789,7 @@ document.addEventListener('click',e=>{
   const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='closeModal'&&action.classList.contains('modal-backdrop')&&e.target!==action)return;act(action.dataset.action)}
 });
 document.addEventListener('input',e=>{
+  if(relicPicker&&e.target.id==='relic-picker-search'){relicPicker.search=e.target.value;renderRelicPickerCards();return}
   if(equipmentPicker&&e.target.id==='picker-search'){equipmentPicker.search=e.target.value;renderPickerCards();return}
   if(e.target.id==='global-search'){
     const start=e.target.selectionStart;state.search=e.target.value;const view=document.querySelector('#view-content');
@@ -684,17 +799,17 @@ document.addEventListener('input',e=>{
   if(e.target.id==='item-level')changeItemLevel(e.target.dataset.itemId,e.target.value);
 });
 document.addEventListener('change',e=>{
+  if(relicPicker&&['relic-picker-type','relic-picker-rarity','relic-picker-assignment','relic-picker-sort'].includes(e.target.id)){relicPicker[e.target.id.replace('relic-picker-','')]=e.target.value;renderRelicPickerCards();return}
   if(equipmentPicker&&['picker-rarity','picker-set','picker-ownership','picker-sort'].includes(e.target.id)){
     equipmentPicker[e.target.id.replace('picker-','')]=e.target.value;renderPickerCards();return;
   }
   if(e.target.id==='hero-changed-only'){state.heroChangedOnly=e.target.checked;render();return}
-  if(e.target.id==='hero-relic')changeHero(e.target.dataset.heroId,'relic',e.target.value);
   if(e.target.id==='battle-filter'){state.battleFilter=e.target.value;render()}
   if(e.target.id==='arena-mode'){state.arenaMode=e.target.value;render()}
 });
 document.addEventListener('keydown',e=>{
-  if(!equipmentPicker)return;
-  if(e.key==='Escape'){e.preventDefault();closeEquipmentPicker();return}
+  if(!equipmentPicker&&!relicPicker)return;
+  if(e.key==='Escape'){e.preventDefault();if(relicPicker)closeRelicPicker();else closeEquipmentPicker();return}
   if(e.key!=='Tab')return;
   const modal=document.querySelector('.equipment-picker');if(!modal)return;
   const focusables=[...modal.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.getClientRects().length);

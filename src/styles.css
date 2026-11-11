@@ -138,3 +138,26 @@
 .hero-filter-empty strong{font-size:14px;color:#e1ebf0}
 .hero-filter-empty p{color:#849bac;font-size:11px;line-height:1.5;margin:0}
 @media(max-width:1250px){.hero-roster-panel .table-toolbar{padding:0 9px;gap:7px}.changed-only-control{padding:6px;gap:5px}.hero-roster-panel .search-box{max-width:38%}}
+
+
+/* Relic picker — docs/DESIGN.md §18; shares equipment modal shell and grid. */
+.relic-assignment{padding:8px 0 2px}
+.relic-assigned-card{display:flex;gap:11px;align-items:flex-start;min-width:0;margin-top:10px;padding:12px;border:1px solid #35485c;border-radius:8px;background:#162638}
+.relic-assigned-icon,.relic-card-art{display:grid;place-items:center;flex-shrink:0;border-radius:8px;border:1px solid #725e9f;background:linear-gradient(145deg,#59457b,#2d3258);color:#e0ceff}
+.relic-assigned-icon{width:42px;height:42px;font-size:24px}
+.relic-assigned-card>div{min-width:0;display:flex;flex-direction:column;gap:5px}
+.relic-assigned-card strong{font-size:12px;color:#e1eaf8}
+.relic-assigned-card small{font-size:10px;color:#9cb2c9}
+.relic-assigned-card div>span{font-size:11px;line-height:1.5;color:#c5d8ea}
+.relic-assigned-empty{padding:16px 8px;color:#8fa5b8;font-size:11px}
+.relic-card-art{width:50px;height:52px;font-size:27px}
+.relic-card-art.legendary{border-color:#b18a49;background:linear-gradient(145deg,#846032,#34344b);color:#ffdfa0}
+.relic-card-art.epic{border-color:#8b6cba;background:linear-gradient(145deg,#62478c,#27375a)}
+.relic-card-art.rare{border-color:#4b84a2;background:linear-gradient(145deg,#316789,#263d52)}
+.relic-card-type{color:#9dc9d4;font-size:10px}
+.relic-card-effect{padding:11px;border-radius:6px;background:#101e2d;border:1px solid #304256;display:flex;flex-direction:column;gap:6px;min-height:75px}
+.relic-card-effect span{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#88a7be;font-weight:700}
+.relic-card-effect strong{font-size:12px;line-height:1.5;color:#d5e3f3}
+.relic-card-meta{display:flex;justify-content:space-between;align-items:center;color:#93a9bc;font-size:10px}
+.relic-card-meta b{color:#e7d29f;font-size:12px}
+.relic-picker-card .picker-card-owner{margin-top:auto}

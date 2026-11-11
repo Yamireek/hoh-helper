@@ -8,6 +8,6 @@
     "build": "node scripts/build.mjs",
     "preview": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node scripts/test-equipment.mjs && node scripts/test-roster.mjs"
+    "test": "node scripts/test-equipment.mjs && node scripts/test-roster.mjs && node scripts/test-relic-picker.mjs"
   }
 }
