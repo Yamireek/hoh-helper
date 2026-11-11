@@ -68,3 +68,7 @@ The Heroes dialog renders the portrait, name, faction, role, stars and level onc
 ### Revert individual hero changes
 
 Each entry under Heroes → Open details → Changes from snapshot has a per-row curved-arrow revert button restoring only the identified change. Unique equipment transfers return the original item without duplication. See `docs/DESIGN.md` §23.
+
+### Opening standalone HTML directly
+
+The built `standalone.html` is fully self-contained. Open it directly from your filesystem, without a server. If startup fails, a visible error panel appears. Builds and CI check its embedded CSS, JavaScript syntax, complete source equality, and initial offline rendering with local storage denied.

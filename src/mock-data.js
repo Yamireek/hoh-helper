@@ -144,4 +144,3 @@ export const recipes = {
   atlantis:{hero:'marie',level:170,equipment:'spark',relic:'ember',cost:{gold:350000,xp:18000,medals:36,shards:20},description:'Improve area clearance in the deep wave.',suggested:'Storm Response'}
 };
 export const formatNum = value => new Intl.NumberFormat('en-US',{notation:Math.abs(value)>=1000000?'compact':'standard',maximumFractionDigits:Math.abs(value)>=1000000?1:0}).format(value);
-

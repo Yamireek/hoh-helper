@@ -27,4 +27,6 @@ assert(!code.includes('class="hero-profile"'),'Redundant hero identity card forb
 assert(doc.includes('## 23. Revert a single hero draft change'),'Revert design contract missing');
 assert(code.includes('heroDiffRevertLine')&&code.includes('revertHeroChange'),'Revert logic missing');
 assert(css.includes('.hero-change-revert'),'Revert style missing');
+assert(doc.includes('## 24. Standalone HTML must launch without a development server'),'Standalone boot design contract missing');
+assert(code.includes('Battle Lab failed to start')&&html.includes('boot-fallback'),'Boot error fallback missing');
 console.log('Source and design checks: OK');

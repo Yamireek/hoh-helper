@@ -3,7 +3,8 @@ import {heroes,equipment,equipmentSlots,equipmentSets,relics,resources,squads,op
 const app=document.getElementById('app');
 const STORAGE='hoh-desktop-prototype-v2';
 const baseChanges={};
-const load=()=>{try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return {}}};
+// Local files and privacy modes may deny storage. The UI must still boot in-memory.
+const load=()=>{try{const data=JSON.parse(localStorage.getItem(STORAGE)||'{}');return data&&typeof data==='object'&&!Array.isArray(data)?data:{};}catch{return {}}};
 let persisted=load();
 const state={view:'overview',search:'',heroChangedOnly:false,heroDialogOpen:false,sortKey:'',sortDir:1,selectedHero:'leonardo',selectedBattle:'b1',selectedOpponent:'opp1',battleFilter:'Needs improvement',arenaMode:'All',changes:persisted.changes||{},assignments:persisted.assignments||{},itemLevels:persisted.itemLevels||{},plans:persisted.plans||[],selectedItem:'scientist-pen',selectedRelic:'guardian-lion',activeSlot:'weapon',activeTab:'Details',toast:'',sidebarCollapsed:false};
 const icons={overview:'▦',heroes:'♜',equipment:'⚒',relics:'◇',resources:'◉',battles:'⚑',arena:'♟',planner:'◷'};
@@ -169,7 +170,7 @@ const allCosts=()=>mergeCost(heroes.reduce((acc,x)=>mergeCost(acc,costFor(x,curr
 const farmDays=cost=>Math.max(0,...Object.entries(cost).map(([k,v])=>{const r=res(k);return r?.perDay?Math.max(0,(v-r.owned)/r.perDay):Infinity}));
 const farmGap=(id,amount)=>Math.max(0,amount-(res(id)?.owned||0));
 const costChips=cost=>Object.keys(cost).length?Object.entries(cost).map(([key,value])=>`<span class="resource-chip" title="${esc(res(key)?.name||key)}"><span style="color:${res(key)?.color||'#fff'}">${res(key)?.icon||'◈'}</span> ${fmt(value)} <span class="muted">${esc(res(key)?.name||key)}</span></span>`).join(''):'<span class="muted">No resource cost</span>';
-const saveDraft=()=>{localStorage.setItem(STORAGE,JSON.stringify({changes:state.changes,assignments:state.assignments,itemLevels:state.itemLevels,plans:state.plans}));};
+const saveDraft=()=>{try{localStorage.setItem(STORAGE,JSON.stringify({changes:state.changes,assignments:state.assignments,itemLevels:state.itemLevels,plans:state.plans}));}catch{/* Keep the current draft in memory when storage is unavailable. */}};
 let timer;
 const toast=msg=>{state.toast=msg;renderToast();clearTimeout(timer);timer=setTimeout(()=>{state.toast='';renderToast()},2900)};
 function renderToast(){document.querySelector('#toast')?.replaceChildren();if(state.toast){const el=document.createElement('div');el.className='toast-message';el.textContent=state.toast;document.querySelector('#toast')?.append(el)}}
@@ -561,4 +562,125 @@ function openRelicPicker(launcher){
   renderRelicPickerCards();
   document.querySelector('#relic-picker-search')?.focus();
 }
-function closeRelicPicker()
+function closeRelicPicker(){
+  if(!relicPicker)return;
+  relicPicker=null;
+  document.querySelector('#modal-root').innerHTML='';
+  syncOverlayInert();
+  const restore=pickerLauncher?.isConnected?pickerLauncher:document.querySelector('[data-action="openRelicPicker"]');
+  pickerLauncher=null;
+  restore?.focus();
+}
+function chooseRelicPickerItem(itemId){
+  if(!relicPicker)return;
+  const {heroId}=relicPicker;
+  if(itemId!==null&&!relics.some(x=>x.id===itemId))return;
+  closeRelicPicker();
+  changeHero(heroId,'relic',itemId||'');
+  document.querySelector('[data-action="openRelicPicker"]')?.focus();
+}
+
+function savePlanModal(){const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" data-action="closeModal"><form id="save-form" class="modal" role="dialog" aria-modal="true" aria-label="Save plan"><div class="modal-head"><h2>Save upgrade plan</h2><button type="button" class="icon-button" data-action="closeModal">×</button></div><p>Your current changes will be saved locally in this browser, not applied to the game.</p><label class="field-label" for="plan-name">Plan name</label><input id="plan-name" name="name" required maxlength="60" value="Battle improvements ${new Date().toLocaleDateString('en-GB')}"/><div class="modal-actions"><button type="button" class="btn secondary" data-action="closeModal">Cancel</button><button type="submit" class="btn primary">Save locally</button></div></form></div>`;root.querySelector('#plan-name')?.focus()}
+function act(action){
+  if(action.startsWith('go')){goto(({goPlanner:'planner',goArena:'arena',goHeroes:'heroes',goBattles:'battles'})[action]);return}
+  if(action==='closeHeroDialog'){closeHeroDialog();return}
+  if(action==='showAllHeroes'){state.heroChangedOnly=false;state.search='';render();return}
+  if(action==='resetHero'){resetHeroDraft(state.selectedHero);toast('Hero draft reset');return;}
+  if(action==='resetChanges'){state.changes={};state.assignments={};state.itemLevels={};saveDraft();render();toast('Draft cleared');return}
+  if(action==='resetAll'){try{localStorage.removeItem(STORAGE)}catch{}state.changes={};state.assignments={};state.itemLevels={};state.plans=[];render();toast('Demo reset');return}
+  if(action==='openEquipmentPicker'){openEquipmentPicker(document.querySelector('[data-action="openEquipmentPicker"]'));return}
+  if(action==='openRelicPicker'){openRelicPicker(document.querySelector('[data-action="openRelicPicker"]'));return}
+  if(action==='savePlan'){savePlanModal();return}
+  if(action==='closeModal'){document.querySelector('#modal-root').innerHTML='';return}
+  if(action==='applyBattle'){applyRecipe(state.selectedBattle);return}
+  if(action==='useFormation'){const o=opponents.find(x=>x.id===state.selectedOpponent);toast(`Selected ${squad(o.alternative).name} for ${o.name} (demo only)`);return}
+  if(action==='optimizeAll'){toast('Candidate formations already ranked in the mock arena table');return}
+}
+document.addEventListener('click',e=>{
+  if(relicPicker){
+    const card=e.target.closest('[data-pick-relic]');if(card){chooseRelicPickerItem(card.dataset.pickRelic);return}
+    if(e.target.closest('[data-relic-picker-unequip]')){chooseRelicPickerItem(null);return}
+    if(e.target.closest('[data-relic-picker-close]')||e.target.hasAttribute('data-relic-picker-backdrop')){closeRelicPicker();return}
+    if(e.target.closest('[data-relic-picker-clear]')){Object.assign(relicPicker,{search:'',type:'All',rarity:'All',assignment:'All',sort:'Highest level'});document.querySelector('#relic-picker-search').value='';for(const field of ['type','rarity','assignment','sort'])document.querySelector('#relic-picker-'+field).value=relicPicker[field];renderRelicPickerCards();document.querySelector('#relic-picker-search')?.focus();return}
+    return;
+  }
+  if(equipmentPicker){
+    const card=e.target.closest('[data-pick-item]');if(card){choosePickerItem(card.dataset.pickItem);return}
+    if(e.target.closest('[data-picker-unequip]')){choosePickerItem(null);return}
+    if(e.target.closest('[data-picker-close]')||(e.target.hasAttribute('data-picker-backdrop'))){closeEquipmentPicker();return}
+    if(e.target.closest('[data-picker-clear]')){Object.assign(equipmentPicker,{search:'',rarity:'All',set:'All',ownership:'All',sort:'Highest level'});document.querySelector('#picker-search').value='';for(const field of ['rarity','set','ownership','sort'])document.querySelector('#picker-'+field).value=equipmentPicker[field];renderPickerCards();document.querySelector('#picker-search')?.focus();return}
+    return; // Ignore all page interactions beneath a modal.
+  }
+  const revert=e.target.closest('[data-revert-kind]');
+  if(revert){
+    const {revertHero:heroId,revertKind:kind,revertKey:key=''}=revert.dataset;
+    const changes=heroDiff(heroId);
+    const index=changes.findIndex(c=>c.kind===kind&&(c.slotId||c.itemId||'')===key);
+    const change=changes[index];
+    if(index<0||!revertHeroChange(heroId,kind,key)){toast('This draft change is no longer available');return}
+    const remaining=[...document.querySelectorAll('.hero-detail-dialog [data-revert-kind]')];
+    const focusTarget=remaining[Math.min(index,remaining.length-1)]||document.querySelector('#hero-changes-heading');
+    focusTarget?.focus({preventScroll:true});
+    toast(`${change.label} restored to snapshot`);
+    return;
+  }
+  const heroBackdrop=e.target.closest('[data-hero-backdrop]');
+  if(heroBackdrop&&heroBackdrop===e.target){closeHeroDialog();return}
+  const openDetail=e.target.closest('[data-open-hero]');if(openDetail){openHeroDialog(openDetail.dataset.openHero);return}
+  const slot=e.target.closest('[data-select-slot]');if(slot){state.activeSlot=slot.dataset.selectSlot;state.selectedItem=heroGear(slot.dataset.forHero)[state.activeSlot];render();return}
+  const item=e.target.closest('[data-item]');if(item){state.selectedItem=item.dataset.item;render();return}
+  const relicRow=e.target.closest('[data-relic]');if(relicRow){state.selectedRelic=relicRow.dataset.relic;render();return}
+  const relicUser=e.target.closest('[data-relic-user]');if(relicUser){state.heroChangedOnly=false;openHeroDialog(relicUser.dataset.relicUser);return}
+  const resetItem=e.target.closest('[data-reset-item]');if(resetItem){delete state.itemLevels[resetItem.dataset.resetItem];saveDraft();render();return}
+  const nav=e.target.closest('[data-nav]');if(nav){goto(nav.dataset.nav);return}
+  const hero=e.target.closest('[data-hero]');if(hero){
+    if(state.view!=='heroes'){openHeroDialog(hero.dataset.hero);return}
+    state.selectedHero=hero.dataset.hero;state.activeSlot='weapon';state.selectedItem=heroGear(state.selectedHero).weapon;render();return;
+  }
+  const battle=e.target.closest('[data-battle]');if(battle){state.selectedBattle=battle.dataset.battle;goto('battles');return}
+  const opp=e.target.closest('[data-opponent]');if(opp){state.selectedOpponent=opp.dataset.opponent;goto('arena');return}
+  const remove=e.target.closest('[data-reset-hero]');if(remove){resetHeroDraft(remove.dataset.resetHero);return}
+  const add=e.target.closest('[data-apply-recipe]');if(add){applyRecipe(add.dataset.applyRecipe);return}
+  const loadPlan=e.target.closest('[data-load-plan]');if(loadPlan){const plan=state.plans[Number(loadPlan.dataset.loadPlan)];state.changes=structuredClone(plan.changes||{});state.assignments=structuredClone(plan.assignments||{});state.itemLevels=structuredClone(plan.itemLevels||{});saveDraft();render();toast('Saved plan loaded');return}
+  const sort=e.target.closest('th[data-sort]');if(sort?.dataset.sort){const key=sort.dataset.sort;state.sortDir=state.sortKey===key?-state.sortDir:1;state.sortKey=key;render();return}
+  const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='closeModal'&&action.classList.contains('modal-backdrop')&&e.target!==action)return;act(action.dataset.action)}
+});
+document.addEventListener('input',e=>{
+  if(relicPicker&&e.target.id==='relic-picker-search'){relicPicker.search=e.target.value;renderRelicPickerCards();return}
+  if(equipmentPicker&&e.target.id==='picker-search'){equipmentPicker.search=e.target.value;renderPickerCards();return}
+  if(e.target.id==='global-search'){
+    const start=e.target.selectionStart;state.search=e.target.value;const view=document.querySelector('#view-content');
+    if(view){view.innerHTML=renderView();syncRecordCount();const input=document.querySelector('#global-search');input?.focus();input?.setSelectionRange(start,start)}return;
+  }
+  if(e.target.id==='hero-level'){const label=e.target.closest('.inspector-section')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${h(e.target.dataset.heroId)?.max||''}`;return}
+  if(e.target.id==='item-level'){const label=e.target.closest('.item-upgrade')?.querySelector('.field-label span');if(label)label.textContent=`${e.target.value} / ${eq(e.target.dataset.itemId)?.maxLevel||''}`;return}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='hero-level'){changeHero(e.target.dataset.heroId,'level',e.target.value);return}
+  if(e.target.id==='item-level'){changeItemLevel(e.target.dataset.itemId,e.target.value);return}
+  if(relicPicker&&['relic-picker-type','relic-picker-rarity','relic-picker-assignment','relic-picker-sort'].includes(e.target.id)){relicPicker[e.target.id.replace('relic-picker-','')]=e.target.value;renderRelicPickerCards();return}
+  if(equipmentPicker&&['picker-rarity','picker-set','picker-ownership','picker-sort'].includes(e.target.id)){
+    equipmentPicker[e.target.id.replace('picker-','')]=e.target.value;renderPickerCards();return;
+  }
+  if(e.target.id==='hero-changed-only'){state.heroChangedOnly=e.target.checked;render();return}
+  if(e.target.id==='battle-filter'){state.battleFilter=e.target.value;render()}
+  if(e.target.id==='arena-mode'){state.arenaMode=e.target.value;render()}
+});
+document.addEventListener('keydown',e=>{
+  if(!equipmentPicker&&!relicPicker){
+    if(state.heroDialogOpen&&e.key==='Escape'){e.preventDefault();closeHeroDialog();return}
+    if(state.heroDialogOpen&&e.key==='Tab'){const dialog=document.querySelector('.hero-detail-dialog');if(dialog){focusInDialog(dialog,e);return}}
+    if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('[data-relic]')){e.preventDefault();state.selectedRelic=e.target.dataset.relic;render();document.querySelector('[data-relic=\"'+state.selectedRelic+'\"]')?.focus();}
+    return;
+  }
+  if(e.key==='Escape'){e.preventDefault();if(relicPicker)closeRelicPicker();else closeEquipmentPicker();return}
+  if(e.key!=='Tab')return;
+  const modal=document.querySelector('.equipment-picker');if(modal)focusInDialog(modal,e);
+});
+document.addEventListener('submit',e=>{if(e.target.id!=='save-form')return;e.preventDefault();const name=e.target.elements.name.value.trim();if(!name)return;state.plans.unshift({name,created:new Date().toLocaleDateString('en-GB'),count:Object.keys(state.changes).length+Object.keys(state.assignments).length+Object.keys(state.itemLevels).length,changes:structuredClone(state.changes),assignments:structuredClone(state.assignments),itemLevels:structuredClone(state.itemLevels)});state.plans=state.plans.slice(0,20);saveDraft();render();toast(`Saved plan: ${name}`)});
+// Keep failures visible even if initialization fails before the UI can render.
+try{render()}catch(error){
+  console.error('Battle Lab failed to start',error);
+  const escaped=String(error?.message||error||'Unknown startup error').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  app.innerHTML=`<div class="boot-fallback"><strong>Battle Lab could not start</strong><p>${escaped}</p><p>Rebuild the standalone HTML with <code>npm run build</code> or refresh after clearing local site data.</p></div>`;
+}
