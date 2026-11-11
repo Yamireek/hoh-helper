@@ -18,4 +18,7 @@ assert(code.includes('relicDetailInspector')&&code.includes('data-relic='),'Reli
 assert(doc.includes('## 20. Hero roster opens a full-size detail dialog'),'Hero dialog design contract required');
 assert(code.includes('heroDialogMarkup')&&code.includes('data-open-hero=')&&code.includes('heroDialogOpen'),'Hero detail dialog required');
 assert(css.includes('.hero-detail-dialog')&&css.includes('.hero-roster-full'),'Full-width roster / dialog styles required');
+assert(doc.includes('## 21. Hero roster details action uses a compact table icon'),'Icon-column design contract missing');
+assert(code.includes('class="hero-detail-open"')&&code.includes('title="Open details for'),'Icon-only accessible hero details button missing');
+assert(!css.includes('.hero-roster-full .data-table th:last-child'),'Hero details column must not be pinned or specially shaded');
 console.log('Source and design checks: OK');

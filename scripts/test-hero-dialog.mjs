@@ -4,7 +4,18 @@ import {heroes,equipment,equipmentSets,equipmentSlots,resources,squads,opponents
 const storage=new Map(),app={innerHTML:''},document={getElementById:()=>app,querySelector:()=>null,querySelectorAll:()=>[],createElement:()=>({}),addEventListener:()=>{},activeElement:null};
 const context=vm.createContext({heroes,equipment,equipmentSets,equipmentSlots,resources,squads,opponents,battles,recipes,relics,formatNum,document,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},structuredClone,clearTimeout,setTimeout:()=>0,console});
 vm.runInContext(fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8').replace(/^import .*?from '.\/mock-data.js';\n/,'').replace(/\nrender\(\);\s*$/,''),context);const ev=s=>vm.runInContext(s,context);
-const roster=ev('heroesView()');assert(roster.includes('hero-roster-full')&&roster.includes('Open details'));assert(!roster.includes('<aside class="inspector">'));assert.equal((roster.match(/data-open-hero=/g)||[]).length,heroes.length);assert(roster.includes('Changed only')&&roster.includes('Draft changes'));assert(ev('shell().includes("hero-modal-root")'));
+const roster=ev('heroesView()');assert(roster.includes('hero-roster-full')&&roster.includes('Open details'));assert(!roster.includes('<aside class="inspector">'));assert.equal((roster.match(/data-open-hero=/g)||[]).length,heroes.length);
+const actionCells=[...roster.matchAll(/<td class="hero-roster-open">(.*?)<\/td>/g)].map(m=>m[1]);
+assert.equal(actionCells.length,heroes.length,'Each hero must have exactly one ordinary action cell');
+for(const cell of actionCells){
+  assert(cell.includes('class="hero-detail-open"')&&cell.includes('aria-label="Open details for '));
+  assert(cell.includes('title="Open details for ')&&cell.includes('<svg ')&&cell.includes('aria-hidden="true"'));
+  assert(!cell.includes('>Open details'),'Button must show an icon, not a text label');
+}
+assert(roster.includes('width:64px'),'Details column must be compact');
+const styles=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert(!styles.includes('.hero-roster-full .data-table th:last-child'),'Details column must scroll like regular columns');
+assert(roster.includes('Changed only')&&roster.includes('Draft changes'));assert(ev('shell().includes("hero-modal-root")'));
 ev("openHeroDialog('cleopatra')");assert.equal(ev('state.heroDialogOpen'),true);assert.equal(ev('state.selectedHero'),'cleopatra');assert(ev('heroDialogMarkup().includes("hero-dialog-scroll")'));assert(ev('heroDialogMarkup().includes("Cleopatra")'));assert(ev('heroDialogMarkup().includes("Equipment · 5/5 slots")'));assert(ev('heroDialogMarkup().includes("Change relic")'));assert(ev('heroDialogMarkup().includes("Review combined plan")'));
 ev("changeHero('cleopatra','level',186)");assert(ev('heroDialogMarkup().includes("1 changes · EDITED")'));ev("changeHero('cleopatra','relic','aegis')");assert(ev('heroDialogMarkup().includes("2 changes · EDITED")'));assert(ev('heroDialogMarkup().includes("Aegis Fragment")'));
 ev('state.heroChangedOnly=true');assert.deepEqual(Array.from(ev('visibleHeroes().map(h=>h.id)')),['cleopatra']);ev("act('resetHero')");assert.equal(ev('state.heroDialogOpen'),true);assert.equal(ev('state.selectedHero'),'cleopatra');assert(ev('heroDialogMarkup().includes("Unchanged")'));assert.equal(ev('visibleHeroes().length'),0);

@@ -210,12 +210,11 @@
 .hero-roster-full{height:100%;min-height:0;min-width:0}
 .hero-roster-full .table-scroller{overflow:auto;overscroll-behavior:contain}
 .hero-roster-full .data-table{min-width:1210px}
-.hero-roster-full .data-table th:last-child,.hero-roster-full .data-table td:last-child{position:sticky;right:0;background:#1b2a39;border-left:1px solid #33485b;z-index:2}
-.hero-roster-full .data-table thead th:last-child{background:#223347;z-index:3}
-.hero-roster-full .data-table tr.draft-edited td:last-child{background:#29372f}
-.hero-detail-open{display:inline-flex;gap:9px;align-items:center;justify-content:space-between;min-width:105px;border-color:#497b80;color:#c1ede3;background:#214047}
-.hero-detail-open:hover{background:#2c595a;border-color:#75cbbb}
-.hero-detail-open span{font-size:14px}
+.hero-roster-full .data-table th.hero-roster-actions-head,.hero-roster-full .data-table td.hero-roster-open{width:64px;min-width:64px;max-width:64px;text-align:center;padding-left:7px;padding-right:7px}
+.hero-detail-open{width:30px;height:30px;padding:0;display:inline-grid;place-items:center;border:1px solid #405267;border-radius:6px;background:#202e3d;color:#a7c0d2;vertical-align:middle;transition:background .12s,border-color .12s,color .12s}
+.hero-detail-open:hover{background:#2e4558;border-color:#7bc6ba;color:#e2f5f0}
+.hero-detail-open:focus-visible{outline:2px solid #83e5d3;outline-offset:2px}
+.hero-detail-open svg{display:block;pointer-events:none}
 .roster-empty-tools{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 17px;border-bottom:1px solid #3a485a;color:#99adbf;font-size:11px}
 .hero-dialog-backdrop{z-index:105;padding:16px;background:#02060cdb;backdrop-filter:blur(5px);overflow:hidden}
 .hero-detail-dialog{display:flex;flex-direction:column;min-width:0;max-width:100%;width:min(1160px,calc(100vw - 46px));height:min(90vh,900px);max-height:calc(100vh - 24px);border:1px solid #456071;border-radius:13px;background:#111c2a;box-shadow:0 30px 110px #000d;overflow:hidden;color:#e3e9f3}
