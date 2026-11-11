@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+const fixtures=fs.readFileSync('src/mock-data.js','utf8').replaceAll('export const ','const ');
+const logic=fs.readFileSync('src/main.js','utf8').replace(/^import .*?from '\.\/mock-data\.js';\n/,'');
+const css=fs.readFileSync('src/styles.css','utf8');
+const html=fs.readFileSync('index.html','utf8');
+const output=html.replace('<link rel="stylesheet" href="/src/styles.css" />',`<style>${css}</style>`).replace('<script type="module" src="/src/main.js"></script>',`<script>${fixtures}\n${logic.replaceAll('</script>','<\\/script>')}</script>`);
+fs.mkdirSync('dist',{recursive:true});
+fs.writeFileSync('dist/index.html',output);
+fs.writeFileSync('standalone.html',output);
+console.log(`Built standalone desktop prototype (${(Buffer.byteLength(output)/1024).toFixed(1)} KiB)`);

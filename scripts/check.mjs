@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const code=fs.readFileSync('src/main.js','utf8');
+const css=fs.readFileSync('src/styles.css','utf8');
+const doc=fs.readFileSync('docs/DESIGN.md','utf8');
+const agents=fs.readFileSync('AGENTS.md','utf8');
+for(const name of ['overview','heroes','equipment','relics','resources','battles','arena','planner']) assert(code.includes("'"+name+"'"),"Missing view "+name);
+assert(css.includes('width:100vw;height:100vh'),'Full viewport shell required');
+assert(doc.includes('primary source of truth'),'Design document contract required');
+assert(agents.includes('Mandatory design-first UI workflow'),'Design-first workflow required');
+assert(code.includes('heroDiff')&&code.includes('hero-changed-only'),'Changed-roster features required');
+assert(code.includes('filteredPickerItems')&&code.includes('choosePickerItem'),'Equipment picker features required');
+console.log('Source and design checks: OK');

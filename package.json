@@ -1,0 +1,13 @@
+{
+  "name": "hoh-desktop-optimizer-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node scripts/test-equipment.mjs && node scripts/test-roster.mjs"
+  }
+}
